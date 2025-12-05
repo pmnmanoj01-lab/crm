@@ -1,5 +1,5 @@
-// export const backendRoute="http://localhost:5000"
-export const backendRoute="https://backend-of-crm-zruj.onrender.com"
+export const backendRoute="http://localhost:5000"
+// export const backendRoute="https://backend-of-crm-zruj.onrender.com"
 
 export const routes={
     login:"/auth/login",

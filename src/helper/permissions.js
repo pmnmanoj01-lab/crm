@@ -2,7 +2,8 @@ export const FEATURE_LIST = {
   team: "team",
   dashboard: "dashboard",
   profile: "profile",
-  permissions:"permissions"
+  permissions:"permissions",
+  product:"product"
 };
 
 export const PERMISSION_TYPES = {
@@ -19,6 +20,13 @@ export const FEATURE_PERMISSIONS = {
   ],
 
   team: [
+    { name: "create", code: 1 },
+    { name: "edit", code: 0 },
+    { name: "delete", code: 2 },
+    { name: "view", code: 3 },
+    { name: "patch", code: 4 },
+  ],
+  product: [
     { name: "create", code: 1 },
     { name: "edit", code: 0 },
     { name: "delete", code: 2 },

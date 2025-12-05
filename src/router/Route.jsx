@@ -12,8 +12,15 @@ import Permission from "../components/Security/Permission";
 import Profile from "../components/Users/Profile";
 import { FEATURE_LIST, PERMISSION_TYPES } from "../helper/permissions";
 import EditProfile from "../components/Users/Profile/EditProfile";
+import ProductList from "../components/Products/ProductList";
+import CreateProduct from "../components/Products/CreateProduct";
+import EditProduct from "../components/Products/EditProduct";
+
+// NEW IMPORTS
+
 export default function AppRouter() {
-    const {isAuthenticated}=useAuth()
+  const { isAuthenticated } = useAuth();
+
   return (
     <Routes>
       {/* Public route */}
@@ -32,13 +39,83 @@ export default function AppRouter() {
             <DashboardLayout>
               <Routes>
                 <Route path="" element={<Dashboard />} />
-                <Route path="team" element={<ProtectedRoute feature={FEATURE_LIST.team} action={PERMISSION_TYPES.view}><Team /></ProtectedRoute>} />
-                <Route path="create-employee" element={<ProtectedRoute feature={FEATURE_LIST.team} action={PERMISSION_TYPES.create}><CreateEmployee /></ProtectedRoute>} />
-                <Route path="edit-employee/:id" element={<ProtectedRoute feature={FEATURE_LIST.team} action={PERMISSION_TYPES.patch}><EditEmployee/></ProtectedRoute>} />
-                <Route path="permissions" element={<ProtectedRoute feature={FEATURE_LIST.permissions} action={PERMISSION_TYPES.view}><Permission/></ProtectedRoute>} />
-                <Route path="edit-profile/:id" element={<ProtectedRoute feature={FEATURE_LIST.profile} action={PERMISSION_TYPES.patch}><EditProfile/></ProtectedRoute>} />
-                <Route path="profile" element={<Profile/>} />
-                <Route path="unauthorized" element={<Unauthorized/>} />
+
+                {/* TEAM ROUTES */}
+                <Route
+                  path="team"
+                  element={
+                    <ProtectedRoute feature={FEATURE_LIST.team} action={PERMISSION_TYPES.view}>
+                      <Team />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="create-employee"
+                  element={
+                    <ProtectedRoute feature={FEATURE_LIST.team} action={PERMISSION_TYPES.create}>
+                      <CreateEmployee />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="edit-employee/:id"
+                  element={
+                    <ProtectedRoute feature={FEATURE_LIST.team} action={PERMISSION_TYPES.patch}>
+                      <EditEmployee />
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* PERMISSIONS */}
+                <Route
+                  path="permissions"
+                  element={
+                    <ProtectedRoute feature={FEATURE_LIST.permissions} action={PERMISSION_TYPES.view}>
+                      <Permission />
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* PROFILE */}
+                <Route
+                  path="edit-profile/:id"
+                  element={
+                    <ProtectedRoute feature={FEATURE_LIST.profile} action={PERMISSION_TYPES.patch}>
+                      <EditProfile />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path="profile" element={<Profile />} />
+
+                {/* PRODUCTS (NEW) */}
+                <Route
+                  path="products"
+                  element={
+                    <ProtectedRoute feature={FEATURE_LIST.product} action={PERMISSION_TYPES.view}>
+                      <ProductList />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="products/create"
+                  element={
+                    <ProtectedRoute feature={FEATURE_LIST.product} action={PERMISSION_TYPES.create}>
+                      <CreateProduct />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="products/edit-product/:id"
+                  element={
+                    <ProtectedRoute feature={FEATURE_LIST.product} action={PERMISSION_TYPES.edit}>
+                      <EditProduct />
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Unauthorized */}
+                <Route path="unauthorized" element={<Unauthorized />} />
               </Routes>
             </DashboardLayout>
           ) : (
