@@ -4,8 +4,9 @@ import { Edit, Trash2, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { backendRoute, routes } from "../../backendUrl";
-import {useAccess } from "../hooks/canAccess";
+import { useAccess } from "../hooks/canAccess";
 import { FEATURE_LIST, PERMISSION_TYPES } from "../../helper/permissions";
+import DeleteConfirmBox from "../Popups/DeleteConfirmBox";
 
 const ROLE_BADGE_COLORS = {
     Casting: "bg-yellow-100 text-yellow-800",
@@ -22,6 +23,9 @@ const Team = () => {
     const [loading, setLoading] = useState(false);
     const [isFiltering, setIsFiltering] = useState(false);
 
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [deleteId, setDeleteId] = useState(null);
+
     const [search, setSearch] = useState("");
     const [filterRole, setFilterRole] = useState("all");
     const [sortBy, setSortBy] = useState("name");
@@ -29,9 +33,11 @@ const Team = () => {
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(8);
     const [totalPages, setTotalPages] = useState(1);
- const {can}=useAccess()
+
+    const { can } = useAccess();
     const navigate = useNavigate();
 
+    // Fetch Users
     const fetchUsers = async () => {
         try {
             if (!employees.length) setLoading(true);
@@ -57,10 +63,9 @@ const Team = () => {
             }
 
             const data = await res.json();
-
-            // Only update list — no page refresh
             setEmployees(data.users || []);
             setTotalPages(data.pagination?.totalPages || 1);
+
         } catch (err) {
             console.error(err);
             toast.error("Failed to load users");
@@ -78,11 +83,12 @@ const Team = () => {
         return () => clearTimeout(delay);
     }, [page, limit, search, filterRole, sortBy, order]);
 
+    // Handle Delete User
     const handleDelete = async (id) => {
         try {
             const res = await fetch(`${backendRoute}${routes.deleteUser}${id}`, {
                 method: "DELETE",
-                credentials: "include"
+                credentials: "include",
             });
 
             if (!res.ok) throw new Error("Delete failed");
@@ -110,20 +116,22 @@ const Team = () => {
     }, [employees]);
 
     return (
-        <div className=" custom-scroll overflow-y-auto h-full">
+        <div className="custom-scroll overflow-y-auto h-full">
             <div className="flex justify-between items-center mb-4">
                 <h1 className="text-2xl font-bold">Employees</h1>
 
-                {can(FEATURE_LIST.team,PERMISSION_TYPES.create)&& <Link
-                    to="/dashboard/create-employee"
-                    className="flex items-center gap-2 bg-[#3c3d3d] text-white px-4 py-2 rounded-lg hover:bg-black"
-                >
-                    <Plus size={18} /> Create Employee
-                </Link>}
+                {can(FEATURE_LIST.team, PERMISSION_TYPES.create) && (
+                    <Link
+                        to="/dashboard/create-employee"
+                        className="flex items-center gap-2 bg-[#3c3d3d] text-white px-4 py-2 rounded-lg hover:bg-black"
+                    >
+                        <Plus size={18} /> Create Employee
+                    </Link>
+                )}
             </div>
 
             {/* FILTERS */}
-            <div className="flex flex-col md:flex-row items-start md:items-center gap-3 mb-4">
+                  <div className="flex flex-wrap items-center gap-4 mb-6 bg-white p-4 rounded shadow">
                 <input
                     type="text"
                     placeholder="Search by name or email..."
@@ -144,7 +152,7 @@ const Team = () => {
                     }}
                 >
                     {roleOptions.map((r) => (
-                        <option key={r} value={r === "all" ? "all" : r}>
+                        <option key={r} value={r}>
                             {r === "all" ? "All Roles" : r}
                         </option>
                     ))}
@@ -222,20 +230,28 @@ const Team = () => {
                                             {emp.role}
                                         </span>
                                     </td>
-                                    <td className="p-3 flex gap-3 justify-center">
-                                        {can(FEATURE_LIST.team,PERMISSION_TYPES.patch)&&<button
-                                            onClick={() => navigate(`/dashboard/edit-employee/${emp._id}`)}
-                                            className="text-[#3c3d3d] hover:text-black"
-                                        >
-                                            <Edit size={18} />
-                                        </button>}
 
-                                       {can(FEATURE_LIST.team,PERMISSION_TYPES.delete)&& <button
-                                            onClick={() => handleDelete(emp._id)}
-                                            className="text-red-600 hover:text-red-800"
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>}
+                                    <td className="p-3 flex gap-3 justify-center">
+                                        {can(FEATURE_LIST.team, PERMISSION_TYPES.patch) && (
+                                            <button
+                                                onClick={() => navigate(`/dashboard/edit-employee/${emp._id}`)}
+                                                className="text-[#3c3d3d] hover:text-black"
+                                            >
+                                                <Edit size={18} />
+                                            </button>
+                                        )}
+
+                                        {can(FEATURE_LIST.team, PERMISSION_TYPES.delete) && (
+                                            <button
+                                                onClick={() => {
+                                                    setDeleteId(emp._id);
+                                                    setConfirmOpen(true);
+                                                }}
+                                                className="text-red-600 hover:text-red-800"
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        )}
                                     </td>
                                 </tr>
                             ))
@@ -280,6 +296,22 @@ const Team = () => {
                     </button>
                 </div>
             </div>
+
+            {/* DELETE CONFIRM MODAL */}
+            <DeleteConfirmBox
+                open={confirmOpen}
+                title="Delete Employee"
+                message="Are you sure you want to delete this employee?"
+                onCancel={() => {
+                    setConfirmOpen(false);
+                    setDeleteId(null);
+                }}
+                onConfirm={() => {
+                    handleDelete(deleteId);
+                    setConfirmOpen(false);
+                    setDeleteId(null);
+                }}
+            />
         </div>
     );
 };

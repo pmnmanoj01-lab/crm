@@ -17,8 +17,7 @@ const CreateEmployee = () => {
         Manager: [
             "Manager", 
         ],
-        Casting: ["Manager","Dia Casting", "Metal Casting"],
-        Production: ["Manager","Filing", "Setting", "Pre Polish", "Polish", "Repair"],
+        Production: ["Manager","Casting","Filing", "Setting", "Pre Polish", "Polish", "Repair"],
         HR: ["HR Executive", "Recruiter", "HR Manager"]
     };
 

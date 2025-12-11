@@ -19,7 +19,7 @@ export default function Sidebar() {
 
             <nav className="space-y-4">
                 {can(FEATURE_LIST.dashboard) && (
-                    <Link to="/" className="flex items-center space-x-3 hover:bg-gray-800 p-2 rounded cursor-pointer">
+                    <Link to="/dashboard" className="flex items-center space-x-3 hover:bg-gray-800 p-2 rounded cursor-pointer">
                         <Home size={20} /> <span>Home</span>
                     </Link>
                 )}

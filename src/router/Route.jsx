@@ -106,7 +106,7 @@ export default function AppRouter() {
                   }
                 />
                 <Route
-                  path="products/edit-product/:id"
+                  path="products/edit-product/:productId"
                   element={
                     <ProtectedRoute feature={FEATURE_LIST.product} action={PERMISSION_TYPES.edit}>
                       <EditProduct />

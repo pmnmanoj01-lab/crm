@@ -44,3 +44,11 @@ export const FEATURE_PERMISSIONS = {
     { name: "edit", code: 0 },
   ],
 };
+export const ProductionRoles={
+  Filing:"Filing",
+  Setting: "Setting",
+  PrePolish: "Pre Polish",
+  Polish: "Polish", 
+  Repair:"Repair",
+  Casting:"Casting",
+}

@@ -3,11 +3,13 @@ import { ShieldCheck, Users, UserCog } from "lucide-react";
 import { FEATURE_LIST, FEATURE_PERMISSIONS } from "../../helper/permissions";
 import { backendRoute, routes } from "../../backendUrl";
 import { toast } from "react-toastify";
+
 const PermissionPage = () => {
     const [users, setUsers] = useState([]);
     const [selectedUser, setSelectedUser] = useState(null);
     const [featurePermissions, setFeaturePermissions] = useState({});
     const [selectedFeature, setSelectedFeature] = useState(null);
+
     useEffect(() => {
         const loadUsers = async () => {
             const res = await fetch(`${backendRoute}${routes.getAllUsers}`, {
@@ -26,9 +28,7 @@ const PermissionPage = () => {
 
         const res = await fetch(
             `${backendRoute}${routes.getUserPermissions}${user._id}`,
-            {
-                credentials: "include",
-            }
+            { credentials: "include" }
         );
         const data = await res.json();
 
@@ -58,6 +58,7 @@ const PermissionPage = () => {
 
     const togglePermission = (code) => {
         if (!selectedFeature) return;
+
         setFeaturePermissions((prev) => {
             const current = prev[selectedFeature] || [];
 
@@ -98,8 +99,7 @@ const PermissionPage = () => {
         });
 
         const data = await res.json();
-
-        if (!data.success) return toast.error(data.message || "Failed to update");
+        if (!data.success) return toast.error(data.message);
 
         toast.success(data.message || "Permissions saved!");
     };
@@ -117,16 +117,21 @@ const PermissionPage = () => {
                         <div
                             key={u._id}
                             onClick={() => handleUserClick(u)}
-                            className={`cursor-pointer p-3 rounded-lg border transition
-                ${selectedUser?._id === u._id
-                                    ? "bg-gray-100 border-gray-600"
-                                    : "border-gray-300"
-                                }
-              `}
+                            className={`cursor-pointer p-3 rounded-lg border transition 
+                                ${
+                                    selectedUser?._id === u._id
+                                        ? "bg-gray-100 border-gray-600"
+                                        : "border-gray-300"
+                                }`}
                         >
                             <p className="font-medium">{u.name}</p>
-                            {u.category!=="Manager"&&<p className="text-sm text-gray-500">{u.role==="Manager"?u.category+" "+u.role:u.role}</p>}
-                            {u.category==="Manager"&&<p className="text-sm text-gray-500">{u.role}</p>}
+                            <p className="text-sm text-gray-500">
+                                {u.category === "Manager"
+                                    ? u.role
+                                    : u.role === "Manager"
+                                    ? u.category + " " + u.role
+                                    : u.role}
+                            </p>
                         </div>
                     ))}
                 </div>
@@ -145,77 +150,63 @@ const PermissionPage = () => {
                             <ShieldCheck size={22} /> Permissions for {selectedUser.name}
                         </h2>
 
-                        <h3 className="text-lg font-semibold mb-2">Select Feature</h3>
-
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+                        {/* --- LEFT FEATURE HEADER --- */}
+                        <div className="grid grid-cols-4 gap-2 mt-6">
                             {Object.keys(FEATURE_LIST).map((key) => {
                                 const f = FEATURE_LIST[key];
                                 return (
                                     <div
                                         key={key}
                                         onClick={() => handleFeatureClick(f)}
-                                        className={`relative p-3 rounded-lg cursor-pointer border text-center capitalize
-                      ${selectedFeature === f
-                                                ? "bg-gray-900 text-white border-gray-900"
-                                                : "bg-gray-100 border-gray-300"
-                                            }
-                    `}
+                                        className={`p-2 rounded-md text-center border cursor-pointer border-gray-300 text-sm 
+                                            ${
+                                                selectedFeature === f
+                                                    ? "bg-black text-white border-black"
+                                                    : "bg-gray-100"
+                                            }`}
                                     >
                                         {f}
 
                                         {featurePermissions[f]?.length > 0 && (
-                                            <span className="absolute top-1 right-2 text-green-600 font-bold">
-                                                ✓
-                                            </span>
-                                        )}
-
-                                        {featurePermissions[f] && (
-                                            <button
-                                                className="absolute top-1 left-2 text-red-500 text-xs"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    removeFeature(f);
-                                                }}
-                                            >
-                                                ✕
-                                            </button>
+                                            <span className="ml-1 text-green-600 font-bold">✓</span>
                                         )}
                                     </div>
                                 );
                             })}
                         </div>
 
-                        {/* PERMISSION GRID */}
+                        {/* --- RIGHT CHECKBOX PERMISSION UI --- */}
                         {selectedFeature && (
-                            <>
-                                <h3 className="text-lg font-semibold mb-2">
+                            <div className="mt-8 bg-gray-50 p-5 border rounded-xl border-gray-300">
+                                <h3 className="text-lg font-semibold mb-4">
                                     Permissions for {selectedFeature}
                                 </h3>
 
-                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                                     {FEATURE_PERMISSIONS[selectedFeature]?.map((perm) => (
-                                        <div
+                                        <label
                                             key={perm.code}
-                                            onClick={() => togglePermission(perm.code)}
-                                            className={`flex items-center justify-center gap-2 p-3 rounded-lg cursor-pointer capitalize border
-                        ${featurePermissions[selectedFeature]?.includes(
-                                                perm.code
-                                            )
-                                                    ? "bg-gray-800 text-white border-gray-800"
-                                                    : "bg-gray-100 border-gray-300"
-                                                }
-                      `}
+                                            className="flex items-center justify-between bg-white p-3 border border-gray-300 rounded-md shadow-sm cursor-pointer"
                                         >
-                                            {perm.name}
-                                        </div>
+                                            <span className="font-medium capitalize">{perm.name}</span>
+
+                                            <input
+                                                type="checkbox"
+                                                checked={featurePermissions[selectedFeature]?.includes(
+                                                    perm.code
+                                                )}
+                                                onChange={() => togglePermission(perm.code)}
+                                                className="w-5 h-5 cursor-pointer accent-black"
+                                            />
+                                        </label>
                                     ))}
                                 </div>
-                            </>
+                            </div>
                         )}
 
                         <button
                             onClick={savePermissions}
-                            className=" cursor-pointer mt-8 bg-gray-800 hover:bg-black text-white px-6 py-2 rounded-lg shadow"
+                            className="mt-8 bg-gray-800 text-white hover:bg-black px-6 py-2 cursor-pointer rounded-lg shadow"
                         >
                             Save Permissions
                         </button>

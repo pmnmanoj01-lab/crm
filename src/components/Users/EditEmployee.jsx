@@ -6,20 +6,19 @@ import { toast } from "react-toastify";
 import { backendRoute, routes } from "../../backendUrl";
 
 const categoryOptions = {
-        Developement: ["Manager",
-            "Frontend Developer", "Backend Developer", "Full Stack Developer",
-            "DevOps Engineer", "App Development", "MERN Stack Developer",
-            "PHP Developer", "MEAN Stack Developer"
-        ],
-        Designer: ["Manager","Cade Designer", "Graphic Designer", "Website Designer"],  // removed extra comma
-        Marketing: ["Manager","Sales Marketing", "Social Media Marketing", "Digital Marketing"],
-        Manager: [
-            "Manager", 
-        ],
-        Casting: ["Manager","Dia Casting", "Metal Casting"],
-        Production: ["Manager","Filing", "Setting", "Pre Polish", "Polish", "Repair"],
-        HR: ["HR Executive", "Recruiter", "HR Manager"]
-    };
+  Developement: ["Manager",
+    "Frontend Developer", "Backend Developer", "Full Stack Developer",
+    "DevOps Engineer", "App Development", "MERN Stack Developer",
+    "PHP Developer", "MEAN Stack Developer"
+  ],
+  Designer: ["Manager", "Cade Designer", "Graphic Designer", "Website Designer"],
+  Marketing: ["Manager", "Sales Marketing", "Social Media Marketing", "Digital Marketing"],
+  Manager: [
+    "Manager",
+  ],
+  Production: ["Manager", "Filing", "Setting", "Pre Polish", "Polish", "Repair", "Casting"],
+  HR: ["HR Executive", "Recruiter", "HR Manager"]
+};
 const EditEmployee = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -46,7 +45,7 @@ const EditEmployee = () => {
 
         const res = await fetch(`${backendRoute}${routes.getSingleUser}${id}`, {
           method: "GET",
-          credentials:"include"
+          credentials: "include"
         });
 
         const data = await res.json();
@@ -126,7 +125,7 @@ const EditEmployee = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(body),
-        credentials:"include"
+        credentials: "include"
       });
 
       const data = await res.json();
@@ -149,17 +148,17 @@ const EditEmployee = () => {
 
   return (
     <div className="max-w-5xl mx-auto p-6 bg-white rounded shadow">
-        <div className="flex justify-between">
-             <h2 className="text-xl font-semibold mb-4">Edit Employee</h2>
-            <button
-                    type="button"
-                    onClick={() => window.history.back()}
-                    className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100"
-                >
-                    Back
-                </button>
-        </div>
-     
+      <div className="flex justify-between">
+        <h2 className="text-xl font-semibold mb-4">Edit Employee</h2>
+        <button
+          type="button"
+          onClick={() => window.history.back()}
+          className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100"
+        >
+          Back
+        </button>
+      </div>
+
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
