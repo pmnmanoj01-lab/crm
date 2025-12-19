@@ -48,7 +48,10 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+    <div
+      className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: "url('/desktop_page.jpg')" }}
+    >
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
         <h2 className="text-2xl font-bold text-gray-800 text-center mb-6">
           Login
@@ -66,7 +69,7 @@ export default function Login() {
             <input
               type="email"
               name="email"
-              className="w-full px-3 py-2 border rounded-md focus:outline-none border-gray-300 focus:border-gray-500 "
+              className="w-full px-3 py-2 border rounded-md focus:outline-none border-gray-300 focus:border-gray-500"
               placeholder="example@gmail.com"
               onChange={handleChange}
               required
