@@ -1,5 +1,5 @@
-export const backendRoute="http://localhost:5000"
-// export const backendRoute="https://backend-of-crm-zruj.onrender.com"
+// export const backendRoute="http://localhost:5000"
+export const backendRoute="http://xgw88sc4gokocoo4kgo8o040.31.97.117.14.sslip.io"
 export const routes={
     login:"/auth/login",
     logout:"/auth/logout",
