@@ -1,5 +1,5 @@
 // export const backendRoute="http://localhost:5000"
-export const backendRoute="http://pw8ggko48g4wcgcwgs484g4o.31.97.117.14.sslip.io"
+export const backendRoute="https://backendcrm.bhunte.com"
 export const routes={
     login:"/auth/login",
     logout:"/auth/logout",
