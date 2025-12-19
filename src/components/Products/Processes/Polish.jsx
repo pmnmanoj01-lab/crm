@@ -9,23 +9,26 @@ import { toast } from "react-toastify";
 
 const sanitizeNumber = (num) => Math.max(0, Number(num) || 0);
 
-const MATERIAL_DATA = {
+let MATERIAL_DATA = {
   Gold: {
-    "Rose Gold": ["Plain", "Stone", "Kundan"],
-    "White Gold": ["Rough", "Medium", "Fine"],
-    "Yellow Gold": ["Rough", "Medium", "Fine"],
+    "Yellow Gold": ["10kt", "14kt", "18kt", "22kt"],
+    "White Gold": ["10kt", "14kt", "18kt", "22kt"],
+    "Rose Gold": ["10kt", "14kt", "18kt", "22kt"],
   },
   Silver: {
-    Casting: ["Raw", "Refined"],
-    Polishing: ["Matt", "Glossy"],
+    925: {},
+
   },
   Platinum: {},
 };
 
-const Polish = () => {
+const Polish = ({ material, onProcessUpdated }) => {
+  const filteredMaterialData =
+  material && MATERIAL_DATA[material]
+    ? { [material]: MATERIAL_DATA[material] }
+    : MATERIAL_DATA;
   const { productId } = useParams();
   const { user } = useAuth();
-
   const [users, setUsers] = useState([]);
   const [product, setProduct] = useState(null);
   const [errors, setErrors] = useState({});
@@ -58,12 +61,12 @@ const Polish = () => {
     if (formData.needExtraMaterial) {
       if (!formData.material) newErrors.material = true;
 
-      const subCategories = Object.keys(MATERIAL_DATA[formData.material] || {});
+      const subCategories = Object.keys(filteredMaterialData[formData.material] || {});
       if (subCategories.length > 0 && !formData.subCategory)
         newErrors.subCategory = true;
 
       const childCategories =
-        MATERIAL_DATA[formData.material]?.[formData.subCategory] || [];
+        filteredMaterialData[formData.material]?.[formData.subCategory] || [];
       if (childCategories.length > 0 && !formData.childCategory)
         newErrors.childCategory = true;
 
@@ -140,7 +143,7 @@ const Polish = () => {
       ...prev,
       weight: product.weightProvided || "",
       returnedWeight: product.returnedWeight || "",
-      remainingWeight: product.remainingWeight || "",
+      remainingWeight: product.weightLoss || "",
       userId: product.userId?._id || prev.userId,
 
       // AUTO EXTRA MATERIAL SELECTION
@@ -153,15 +156,15 @@ const Polish = () => {
   }, [product]);
 
   /* ----------------------- CALCULATE REMAINING WEIGHT ----------------------- */
-  useEffect(() => {
-    const w = sanitizeNumber(formData.weight);
-    const r = sanitizeNumber(formData.returnedWeight);
+  // useEffect(() => {
+  //   const w = sanitizeNumber(formData.weight);
+  //   const r = sanitizeNumber(formData.returnedWeight);
 
-    setFormData((prev) => ({
-      ...prev,
-      remainingWeight: w > 0 ? Math.max(w - r, 0) : 0,
-    }));
-  }, [formData.weight, formData.returnedWeight]);
+  //   setFormData((prev) => ({
+  //     ...prev,
+  //     remainingWeight: w > 0 ? Math.max(w - r, 0) : 0,
+  //   }));
+  // }, [formData.weight, formData.returnedWeight]);
 
   /* ----------------------- SUBMIT ----------------------- */
   const handleSubmit = async (e) => {
@@ -204,6 +207,10 @@ const Polish = () => {
       const data = await res.json();
 
       if (data.success) {
+        if (data?.data?.returnedWeight !== undefined) {
+
+          onProcessUpdated()
+        }
         toast.success(product ? "Polish Updated!" : "Polish Added!");
       } else {
         toast.error(data.message || "Failed");
@@ -216,12 +223,12 @@ const Polish = () => {
 
   /* ----------------------- DROPDOWN VALUES ----------------------- */
   const subCategories = formData.material
-    ? Object.keys(MATERIAL_DATA[formData.material] || {})
+    ? Object.keys(filteredMaterialData[formData.material] || {})
     : [];
 
   const childCategories =
     formData.material && formData.subCategory
-      ? MATERIAL_DATA[formData.material][formData.subCategory] || []
+      ? filteredMaterialData[formData.material][formData.subCategory] || []
       : [];
 
   /* ----------------------- UI ----------------------- */
@@ -232,7 +239,7 @@ const Polish = () => {
       </h2>
 
       <form className="space-y-5" onSubmit={handleSubmit}>
-        
+
         {/* -------------------- MAIN INPUTS -------------------- */}
         <div className="grid md:grid-cols-3 gap-5">
 
@@ -329,16 +336,15 @@ const Polish = () => {
             Need Extra Material?
           </label>
 
-          {formData.needExtraMaterial && (
+          {formData.needExtraMaterial ? (
             <div className="grid md:grid-cols-3 gap-4 mt-4">
-              
+
               {/* MATERIAL */}
               <div>
                 <label className="block text-sm">Material</label>
                 <select
-                  className={`w-full border px-3 py-2 rounded-lg ${
-                    errors.material ? "border-red-500" : ""
-                  }`}
+                  className={`w-full border px-3 py-2 rounded-lg ${errors.material ? "border-red-500" : ""
+                    }`}
                   value={formData.material}
                   onChange={(e) =>
                     setFormData({
@@ -350,7 +356,7 @@ const Polish = () => {
                   }
                 >
                   <option value="">Select Material</option>
-                  {Object.keys(MATERIAL_DATA).map((mat) => (
+                  {Object.keys(filteredMaterialData).map((mat) => (
                     <option key={mat} value={mat}>
                       {mat}
                     </option>
@@ -363,9 +369,8 @@ const Polish = () => {
                 <div>
                   <label className="block text-sm">Sub Category</label>
                   <select
-                    className={`w-full border px-3 py-2 rounded-lg ${
-                      errors.subCategory ? "border-red-500" : ""
-                    }`}
+                    className={`w-full border px-3 py-2 rounded-lg ${errors.subCategory ? "border-red-500" : ""
+                      }`}
                     value={formData.subCategory}
                     onChange={(e) =>
                       setFormData({
@@ -390,9 +395,8 @@ const Polish = () => {
                 <div>
                   <label className="block text-sm">Child Category</label>
                   <select
-                    className={`w-full border px-3 py-2 rounded-lg ${
-                      errors.childCategory ? "border-red-500" : ""
-                    }`}
+                    className={`w-full border px-3 py-2 rounded-lg ${errors.childCategory ? "border-red-500" : ""
+                      }`}
                     value={formData.childCategory}
                     onChange={(e) =>
                       setFormData({ ...formData, childCategory: e.target.value })
@@ -415,9 +419,8 @@ const Polish = () => {
                 </label>
                 <input
                   type="number"
-                  className={`w-full border px-3 py-2 rounded-lg ${
-                    errors.extraMaterialWeight ? "border-red-500" : ""
-                  }`}
+                  className={`w-full border px-3 py-2 rounded-lg ${errors.extraMaterialWeight ? "border-red-500" : ""
+                    }`}
                   value={formData.extraMaterialWeight}
                   onChange={(e) =>
                     setFormData({
@@ -428,12 +431,12 @@ const Polish = () => {
                 />
               </div>
             </div>
-          )}
+          ):null}
         </div>
 
         <button
           type="submit"
-          className="w-36 bg-[#3c3d3d] text-white py-2 rounded-lg hover:bg-black"
+          className="w-36 bg-[#3c3d3d] cursor-pointer text-white py-2 rounded-lg hover:bg-black"
         >
           {productId ? "Update Polish" : "Submit Polish"}
         </button>

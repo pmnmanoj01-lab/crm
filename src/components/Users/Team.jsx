@@ -7,6 +7,8 @@ import { backendRoute, routes } from "../../backendUrl";
 import { useAccess } from "../hooks/canAccess";
 import { FEATURE_LIST, PERMISSION_TYPES } from "../../helper/permissions";
 import DeleteConfirmBox from "../Popups/DeleteConfirmBox";
+import StatusToggle from "../Popups/TogglePopup";
+import { useAuth } from "../../context/store";
 
 const ROLE_BADGE_COLORS = {
     Casting: "bg-yellow-100 text-yellow-800",
@@ -22,7 +24,7 @@ const Team = () => {
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(false);
     const [isFiltering, setIsFiltering] = useState(false);
-
+    const { user } = useAuth()
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [deleteId, setDeleteId] = useState(null);
 
@@ -110,6 +112,34 @@ const Team = () => {
         }
     };
 
+    const toggleStatus = async (id, newStatus) => {
+        try {
+            const res = await fetch(
+                `${backendRoute}${routes.updateStatusOfUser}${id}`,
+                {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({ isActive: newStatus }),
+                }
+            );
+
+            if (!res.ok) throw new Error("Status update failed");
+
+            setEmployees(prev =>
+                prev.map(u =>
+                    u._id === id ? { ...u, isActive: newStatus } : u
+                )
+            );
+
+            toast.success(`User ${newStatus ? "Activated" : "Deactivated"}`);
+        } catch (err) {
+            console.error(err);
+            toast.error("Failed to update status");
+        }
+    };
+
+
     const roleOptions = useMemo(() => {
         const setRoles = new Set(employees.map((u) => u.role).filter(Boolean));
         return ["all", ...Array.from(setRoles)];
@@ -131,7 +161,7 @@ const Team = () => {
             </div>
 
             {/* FILTERS */}
-                  <div className="flex flex-wrap items-center gap-4 mb-6 bg-white p-4 rounded shadow">
+            <div className="flex flex-wrap items-center gap-4 mb-6 bg-white p-4 rounded shadow">
                 <input
                     type="text"
                     placeholder="Search by name or email..."
@@ -198,6 +228,7 @@ const Team = () => {
                             <th className="p-3 text-left">Email</th>
                             <th className="p-3 text-left">Phone</th>
                             <th className="p-3 text-left">Role</th>
+                            <th className="p-3 text-center">Status</th>
                             <th className="p-3 text-center">Actions</th>
                         </tr>
                     </thead>
@@ -211,6 +242,9 @@ const Team = () => {
                                         <td className="p-3"><div className="h-4 bg-gray-200 rounded animate-pulse w-56" /></td>
                                         <td className="p-3"><div className="h-4 bg-gray-200 rounded animate-pulse w-32" /></td>
                                         <td className="p-3"><div className="h-4 bg-gray-200 rounded animate-pulse w-24" /></td>
+                                        <td className="p-3"><div className="h-4 bg-gray-200 rounded animate-pulse w-24" /></td>
+
+
                                         <td className="p-3 text-center"><div className="h-6 bg-gray-200 w-24 rounded animate-pulse mx-auto" /></td>
                                     </tr>
                                 ))}
@@ -226,10 +260,22 @@ const Team = () => {
                                     <td className="p-3">{emp.email}</td>
                                     <td className="p-3">{emp.phone || "-"}</td>
                                     <td className="p-3">
-                                        <span className={`px-2 py-1 rounded text-sm ${ROLE_BADGE_COLORS[emp.role] || ROLE_BADGE_COLORS.default}`}>
+                                        {(emp.category === "Manager" && emp.role === "Manager") && <span className={`px-2 py-1 rounded text-sm ${ROLE_BADGE_COLORS[emp.role] || ROLE_BADGE_COLORS.default}`}>
                                             {emp.role}
-                                        </span>
+                                        </span>}
+                                        {(emp.category !== "Manager" && emp.role === "Manager") ? <span className={`px-2 py-1 rounded text-sm ${ROLE_BADGE_COLORS[emp.role] || ROLE_BADGE_COLORS.default}`}>
+                                          {emp.category}  {emp.role}
+                                        </span> : <span className={`px-2 py-1 rounded text-sm ${ROLE_BADGE_COLORS[emp.role] || ROLE_BADGE_COLORS.default}`}>
+                                            {emp.role}
+                                        </span>}
                                     </td>
+                                    {user?.role === "admin" && <td className="p-3 text-center">
+                                        <StatusToggle
+                                            value={emp.isActive}
+                                            onChange={(val) => toggleStatus(emp._id, val)}
+                                            disabled={!can(FEATURE_LIST.team, PERMISSION_TYPES.patch)}
+                                        />
+                                    </td>}
 
                                     <td className="p-3 flex gap-3 justify-center">
                                         {can(FEATURE_LIST.team, PERMISSION_TYPES.patch) && (

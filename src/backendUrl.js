@@ -1,25 +1,31 @@
 export const backendRoute="http://localhost:5000"
 // export const backendRoute="https://backend-of-crm-zruj.onrender.com"
-
 export const routes={
-
     login:"/auth/login",
     logout:"/auth/logout",
-    verifyToken:"/auth/me",
+    verifyToken:"/auth/verify-token",
     createUser:"/admin/register",
     getAllUsers:"/admin/get-all-user",
     deleteUser:"/admin/delete-user/",
     updateUser:"/admin/update-user/",
     getSingleUser:"/admin/get-single-user/",
+    impersonateAdmin:"/auth/impersonate/",
+    exitImpersonateAdmin:"/auth/exitimpersonate",
     getUserPermissions:"/admin/get-permissions/",
     updatePermissions:"/admin/save-permissions",
+    updateStatusOfUser:"/admin/update-status/",
     fetchUserOfProductionATORole:"/manager/get-users",
+
+
+    //<---------------------- Dashboard routes-------------------------------->
+    getDashboardStatsData:"/dashboard/get-dashboard-data-stats-card",
 
     //<---------------------- product routes-------------------------------->
     createProduct:"/product/create-product",
     updateProduct:"/product/update-product/",
     getAllProducts:"/product/get-all-products",
     getProductById:"/product/get-product-by-id/",
+    deleteProduct:"/product/delete-product/",
 
     //---------------product-filing------------------------->
 

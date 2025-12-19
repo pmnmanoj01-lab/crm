@@ -15,6 +15,9 @@ import EditProfile from "../components/Users/Profile/EditProfile";
 import ProductList from "../components/Products/ProductList";
 import CreateProduct from "../components/Products/CreateProduct";
 import EditProduct from "../components/Products/EditProduct";
+import DesignProductList from "../components/Desinger/ProductList";
+import CreateDesignProduct from "../components/Desinger/CreateProduct";
+import EidtDesignProduct from "../components/Desinger/EditProduct";
 
 // NEW IMPORTS
 
@@ -110,6 +113,31 @@ export default function AppRouter() {
                   element={
                     <ProtectedRoute feature={FEATURE_LIST.product} action={PERMISSION_TYPES.edit}>
                       <EditProduct />
+                    </ProtectedRoute>
+                  }
+                />
+                  <Route
+                  path="designer/products"
+                  element={
+                    <ProtectedRoute feature={FEATURE_LIST.designer} action={PERMISSION_TYPES.view}>
+                      <DesignProductList />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="designer/create-product"
+                  element={
+                    <ProtectedRoute feature={FEATURE_LIST.designer} action={PERMISSION_TYPES.create}>
+                      <CreateDesignProduct />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="designer/edit-product/:productId"
+                  element={
+                    <ProtectedRoute feature={FEATURE_LIST.designer} action={PERMISSION_TYPES.edit}>
+                      <EidtDesignProduct />
                     </ProtectedRoute>
                   }
                 />

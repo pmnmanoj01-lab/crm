@@ -6,88 +6,92 @@ import Setting from "./Processes/Setting";
 import Polish from "./Processes/Polish";
 import Repair from "./Processes/Repair";
 import { useAuth } from "../../context/store";
-// -----------------------------------------------------
-// FIXED PROCESS FLOW ORDER
-// -----------------------------------------------------
+import { backendRoute, routes } from "../../backendUrl";
+import { useParams } from "react-router-dom";
+
 const PROCESS_FLOW = [
   "Casting",
   "Filing",
   "Pre Polish",
   "Setting",
   "Polish",
-  "Repair",
+  "Repair"
 ];
 
-// -----------------------------------------------------
-// ALL TABS + PROCESS ID
-// -----------------------------------------------------
 const TABS = [
   { id: "Casting", label: "Casting", processId: 1, component: Casting },
   { id: "Filing", label: "Filing", processId: 2, component: Filing },
   { id: "Pre Polish", label: "Pre Polish", processId: 3, component: PrePolish },
   { id: "Setting", label: "Setting", processId: 4, component: Setting },
   { id: "Polish", label: "Polish", processId: 5, component: Polish },
-  { id: "Repair", label: "Repair", processId: 6, component: Repair },
+  { id: "Repair", label: "Repair", processId: 6, component: Repair }
 ];
 
-export default function EditProduct({ productId }) {
+export default function EditProduct() {
+    const { productId } = useParams(); // 👈 get id from URL
+const [material,setMaterial]=useState("")
   const { user } = useAuth();
-
-  // COMPLETED PROCESS FROM BACKEND
   const [completedProcesses, setCompletedProcesses] = useState([]);
 
-  // -----------------------------------------------------
-  // FETCH PRODUCT DETAILS USING fetch()
-  // -----------------------------------------------------
   useEffect(() => {
     fetchProduct();
   }, []);
 
   const fetchProduct = async () => {
     try {
-      const res = await fetch(`/product/${productId}`);
+      const res = await fetch(`${backendRoute}${routes.getProductById}${productId}`,{
+        method:"GET",
+        credentials:"include"
+      });
       const data = await res.json();
-
-      setCompletedProcesses(data.product?.completedProcesses || []);
+      setMaterial(data?.data?.material||"")
+      setCompletedProcesses(data?.data?.completedProcesses || []);
     } catch (err) {
       console.error("Fetch product error", err);
     }
   };
 
-  // -----------------------------------------------------
-  // ROLE + PROCESS PROGRESSION LOGIC
-  // -----------------------------------------------------
   const allowedTabs = useMemo(() => {
     const role = user?.role;
-
-    // ADMIN / MANAGER = FULL ACCESS
+// console.log("user role is as--------> ",completedProcesses,PROCESS_FLOW.length)
+    // ADMIN / MANAGER
     if (role === "Manager" || role === "admin") {
-      return TABS;
+
+      // All completed => full access
+      if (completedProcesses.length === PROCESS_FLOW.length) {
+        return TABS;
+      }
+
+      // Find first process NOT completed
+      const nextPending = PROCESS_FLOW.find(
+        (p) => !completedProcesses.includes(p)
+      );
+
+      return TABS.filter((tab) => {
+        return (
+          completedProcesses.includes(tab.id) ||
+          tab.id === nextPending
+        );
+      });
     }
 
-    // WORKER (ROLE NAME = PROCESS NAME)
+    // WORKER
     const workerProcess = role;
     const index = PROCESS_FLOW.indexOf(workerProcess);
 
-    // FIRST PROCESS ALWAYS ALLOWED
     if (workerProcess === "Casting") {
       return TABS.filter((t) => t.id === "Casting");
     }
 
-    // CHECK IF PREVIOUS PROCESS IS COMPLETED
     const previous = PROCESS_FLOW[index - 1];
 
     if (completedProcesses.includes(previous)) {
       return TABS.filter((t) => t.id === workerProcess);
     }
 
-    // PROCESS LOCKED
     return [];
   }, [user, completedProcesses]);
 
-  // -----------------------------------------------------
-  // DEFAULT TAB
-  // -----------------------------------------------------
   const [activeTab, setActiveTab] = useState(null);
 
   useEffect(() => {
@@ -95,16 +99,10 @@ export default function EditProduct({ productId }) {
       setActiveTab(allowedTabs[0].id);
     }
   }, [allowedTabs]);
-
-
-  // -----------------------------------------------------
-  // RENDER
-  // -----------------------------------------------------
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Process Overview</h1>
 
-      {/* TABS */}
       <div className="flex gap-3 border-b border-gray-300 pb-2 overflow-x-auto">
         {allowedTabs.map((tab) => (
           <button
@@ -121,7 +119,6 @@ export default function EditProduct({ productId }) {
         ))}
       </div>
 
-      {/* TAB CONTENT */}
       <div className="bg-white p-4 mt-4 rounded shadow">
         {allowedTabs
           .filter((t) => t.id === activeTab)
@@ -131,7 +128,9 @@ export default function EditProduct({ productId }) {
               <Component
                 key={tab.id}
                 productId={productId}
-                processId={PROCESS_FLOW[tab.processId-1]}   // <-- SEND PROCESS ID HERE
+                processId={tab.id}
+                material={material}
+                onProcessUpdated={fetchProduct}
               />
             );
           })}

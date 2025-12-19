@@ -1,28 +1,26 @@
-/** FULL UPDATED Filing COMPONENT WITH VALIDATION + AUTO EXTRA MATERIAL */
-
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { ProductionRoles } from "../../../helper/permissions";
 import { backendRoute, routes } from "../../../backendUrl";
 import { useAuth } from "../../../context/store";
 import { toast } from "react-toastify";
-
 const sanitizeNumber = (num) => Math.max(0, Number(num) || 0);
-
-const MATERIAL_DATA = {
+let MATERIAL_DATA = {
   Gold: {
-    "Rose Gold": ["Plain", "Stone", "Kundan"],
-    "White Gold": ["Rough", "Medium", "Fine"],
-    "Yellow Gold": ["Rough", "Medium", "Fine"],
+    "Yellow Gold": ["10kt", "14kt", "18kt", "22kt"],
+    "White Gold": ["10kt", "14kt", "18kt", "22kt"],
+    "Rose Gold": ["10kt", "14kt", "18kt", "22kt"],
   },
   Silver: {
-    Casting: ["Raw", "Refined"],
-    Polishing: ["Matt", "Glossy"],
+    925: {},
   },
   Platinum: {},
 };
-
-const Filing = () => {
+const Filing = ({ material, onProcessUpdated }) => {
+  const filteredMaterialData =
+    material && MATERIAL_DATA[material]
+      ? { [material]: MATERIAL_DATA[material] }
+      : MATERIAL_DATA;
   const { productId } = useParams();
   const { user } = useAuth();
 
@@ -39,10 +37,13 @@ const Filing = () => {
     material: "",
     subCategory: "",
     childCategory: "",
+    scrab: "",
+    wireWeight: "",
     extraMaterialWeight: "",
   });
 
   /* ----------------------- ROLE PERMISSIONS ----------------------- */
+
   const isEditable =
     user.role === "admin" ||
     (user.category === "Manager" && user.role === "Manager") ||
@@ -51,19 +52,22 @@ const Filing = () => {
   const showSelectUser = isEditable;
   const ROLE_LIST = [ProductionRoles.Filing];
 
+
   /* ----------------------- VALIDATION ----------------------- */
+
+
   const validateExtraMaterial = () => {
     let newErrors = {};
 
     if (formData.needExtraMaterial) {
       if (!formData.material) newErrors.material = true;
 
-      const subCategories = Object.keys(MATERIAL_DATA[formData.material] || {});
+      const subCategories = Object.keys(filteredMaterialData[formData.material] || {});
       if (subCategories.length > 0 && !formData.subCategory)
         newErrors.subCategory = true;
 
       const childCategories =
-        MATERIAL_DATA[formData.material]?.[formData.subCategory] || [];
+        filteredMaterialData[formData.material]?.[formData.subCategory] || [];
       if (childCategories.length > 0 && !formData.childCategory)
         newErrors.childCategory = true;
 
@@ -75,7 +79,10 @@ const Filing = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+
   /* ----------------------- FETCH USERS ----------------------- */
+
+
   useEffect(() => {
     if (!showSelectUser) return;
 
@@ -99,14 +106,20 @@ const Filing = () => {
     fetchUsers();
   }, [showSelectUser]);
 
+
   /* AUTO ASSIGN USER */
+
+
   useEffect(() => {
     if (!showSelectUser) {
       setFormData((prev) => ({ ...prev, userId: user._id }));
     }
   }, [showSelectUser, user]);
 
+
   /* ----------------------- FETCH PRODUCT (EDIT MODE) ----------------------- */
+
+
   useEffect(() => {
     if (!productId) return;
 
@@ -130,6 +143,7 @@ const Filing = () => {
   }, [productId]);
 
   /* ----------------------- AUTO-FILL FORM WHEN PRODUCT LOADED ----------------------- */
+
   useEffect(() => {
     if (!product) return;
 
@@ -140,28 +154,30 @@ const Filing = () => {
       ...prev,
       weight: product.weightProvided || "",
       returnedWeight: product.returnedWeight || "",
-      remainingWeight: product.remainingWeight || "",
+      remainingWeight: product.weightLoss || "",
       userId: product.userId?._id || prev.userId,
-
+      scrab: product.scrab || "",
+      wireWeight: product.wireWeight || "",
       // AUTO EXTRA MATERIAL SELECTION
       needExtraMaterial: hasExtra,
       material: hasExtra ? product.material : "",
       subCategory: hasExtra ? product.subCategory : "",
       childCategory: hasExtra ? product.childCategory : "",
       extraMaterialWeight: hasExtra ? product.extraMaterialWeight : "",
+
     }));
   }, [product]);
 
-  /* ----------------------- CALCULATE REMAINING WEIGHT ----------------------- */
-  useEffect(() => {
-    const w = sanitizeNumber(formData.weight);
-    const r = sanitizeNumber(formData.returnedWeight);
+  // /* ----------------------- CALCULATE REMAINING WEIGHT ----------------------- */
+  // useEffect(() => {
+  //   const w = sanitizeNumber(formData.weight);
+  //   const r = sanitizeNumber(formData.returnedWeight);
 
-    setFormData((prev) => ({
-      ...prev,
-      remainingWeight: w > 0 ? Math.max(w - r, 0) : 0,
-    }));
-  }, [formData.weight, formData.returnedWeight]);
+  //   setFormData((prev) => ({
+  //     ...prev,
+  //     remainingWeight: w > 0 ? Math.max(w - r, 0) : 0,
+  //   }));
+  // }, [formData.weight, formData.returnedWeight]);
 
   /* ----------------------- SUBMIT ----------------------- */
   const handleSubmit = async (e) => {
@@ -181,6 +197,8 @@ const Filing = () => {
       childCategory: formData.needExtraMaterial
         ? formData.childCategory
         : null,
+      scrab: formData.scrab,
+      wireWeight: formData.wireWeight,
       extraMaterialWeight: formData.needExtraMaterial
         ? Number(formData.extraMaterialWeight)
         : 0,
@@ -202,8 +220,11 @@ const Filing = () => {
       });
 
       const data = await res.json();
-
       if (data.success) {
+        if (data?.data?.returnedWeight !== undefined) {
+
+          onProcessUpdated()
+        }
         toast.success(product ? "Filing Updated!" : "Filing Added!");
       } else {
         toast.error(data.message || "Failed");
@@ -215,13 +236,14 @@ const Filing = () => {
   };
 
   /* ----------------------- DROPDOWN VALUES ----------------------- */
+
   const subCategories = formData.material
-    ? Object.keys(MATERIAL_DATA[formData.material] || {})
+    ? Object.keys(filteredMaterialData[formData.material] || {})
     : [];
 
   const childCategories =
     formData.material && formData.subCategory
-      ? MATERIAL_DATA[formData.material][formData.subCategory] || []
+      ? filteredMaterialData[formData.material][formData.subCategory] || []
       : [];
 
   /* ----------------------- UI ----------------------- */
@@ -232,7 +254,7 @@ const Filing = () => {
       </h2>
 
       <form className="space-y-5" onSubmit={handleSubmit}>
-        
+
         {/* -------------------- MAIN INPUTS -------------------- */}
         <div className="grid md:grid-cols-3 gap-5">
 
@@ -279,7 +301,32 @@ const Filing = () => {
               }
             />
           </div>
-
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">
+              Scrab (grams)
+            </label>
+            <input
+              type="number"
+              className="w-full border rounded-lg px-3 py-2"
+              value={formData.scrab}
+              onChange={(e) =>
+                setFormData({ ...formData, scrab: sanitizeNumber(e.target.value) })
+              }
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">
+              Titanium Wire (grams)
+            </label>
+            <input
+              type="number"
+              className="w-full border rounded-lg px-3 py-2"
+              value={formData.wireWeight}
+              onChange={(e) =>
+                setFormData({ ...formData, wireWeight: sanitizeNumber(e.target.value) })
+              }
+            />
+          </div>
           <div>
             <label className="block text-sm text-gray-600 mb-1">
               Weight Loss
@@ -291,6 +338,7 @@ const Filing = () => {
               value={formData.remainingWeight}
             />
           </div>
+
 
           {showSelectUser && (
             <div>
@@ -329,16 +377,14 @@ const Filing = () => {
             Need Extra Material?
           </label>
 
-          {formData.needExtraMaterial && (
+          {formData.needExtraMaterial ? (
             <div className="grid md:grid-cols-3 gap-4 mt-4">
-              
               {/* MATERIAL */}
               <div>
                 <label className="block text-sm">Material</label>
                 <select
-                  className={`w-full border px-3 py-2 rounded-lg ${
-                    errors.material ? "border-red-500" : ""
-                  }`}
+                  className={`w-full border px-3 py-2 rounded-lg ${errors.material ? "border-red-500" : ""
+                    }`}
                   value={formData.material}
                   onChange={(e) =>
                     setFormData({
@@ -350,7 +396,7 @@ const Filing = () => {
                   }
                 >
                   <option value="">Select Material</option>
-                  {Object.keys(MATERIAL_DATA).map((mat) => (
+                  {Object.keys(filteredMaterialData).map((mat) => (
                     <option key={mat} value={mat}>
                       {mat}
                     </option>
@@ -363,9 +409,8 @@ const Filing = () => {
                 <div>
                   <label className="block text-sm">Sub Category</label>
                   <select
-                    className={`w-full border px-3 py-2 rounded-lg ${
-                      errors.subCategory ? "border-red-500" : ""
-                    }`}
+                    className={`w-full border px-3 py-2 rounded-lg ${errors.subCategory ? "border-red-500" : ""
+                      }`}
                     value={formData.subCategory}
                     onChange={(e) =>
                       setFormData({
@@ -390,9 +435,8 @@ const Filing = () => {
                 <div>
                   <label className="block text-sm">Child Category</label>
                   <select
-                    className={`w-full border px-3 py-2 rounded-lg ${
-                      errors.childCategory ? "border-red-500" : ""
-                    }`}
+                    className={`w-full border px-3 py-2 rounded-lg ${errors.childCategory ? "border-red-500" : ""
+                      }`}
                     value={formData.childCategory}
                     onChange={(e) =>
                       setFormData({ ...formData, childCategory: e.target.value })
@@ -415,9 +459,8 @@ const Filing = () => {
                 </label>
                 <input
                   type="number"
-                  className={`w-full border px-3 py-2 rounded-lg ${
-                    errors.extraMaterialWeight ? "border-red-500" : ""
-                  }`}
+                  className={`w-full border px-3 py-2 rounded-lg ${errors.extraMaterialWeight ? "border-red-500" : ""
+                    }`}
                   value={formData.extraMaterialWeight}
                   onChange={(e) =>
                     setFormData({
@@ -427,13 +470,14 @@ const Filing = () => {
                   }
                 />
               </div>
+
             </div>
-          )}
+          ) : null}
         </div>
 
         <button
           type="submit"
-          className="w-36 bg-[#3c3d3d] text-white py-2 rounded-lg hover:bg-black"
+          className="w-36 bg-[#3c3d3d] cursor-pointer text-white py-2 rounded-lg hover:bg-black"
         >
           {productId ? "Update Filing" : "Submit Filing"}
         </button>

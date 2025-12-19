@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 
 const sanitizeNumber = (num) => Math.max(0, Number(num) || 0);
 
-const PrePolish = () => {
+const PrePolish = ({processId,onProcessUpdated}) => {
   const { productId } = useParams();
   const { user } = useAuth();
   const [users, setUsers] = useState([]);
@@ -103,7 +103,7 @@ const PrePolish = () => {
     setFormData({
       weight: product.weightProvided || "",
       returnedWeight: product.returnedWeight || "",
-      remainingWeight: product.remainingWeight || "",
+      remainingWeight: product.weightLoss || "",
       userId: product.userId?._id || "",
     });
   }, [product]);
@@ -111,15 +111,15 @@ const PrePolish = () => {
   /* --------------------------------------------
       AUTO CALCULATE REMAINING WEIGHT
   --------------------------------------------- */
-  useEffect(() => {
-    const w = sanitizeNumber(formData.weight);
-    const r = sanitizeNumber(formData.returnedWeight);
+  // useEffect(() => {
+  //   const w = sanitizeNumber(formData.weight);
+  //   const r = sanitizeNumber(formData.returnedWeight);
 
-    setFormData((prev) => ({
-      ...prev,
-      remainingWeight: r > 0 ? Math.max(w - r, 0) : 0,
-    }));
-  }, [formData.weight, formData.returnedWeight]);
+  //   setFormData((prev) => ({
+  //     ...prev,
+  //     remainingWeight: r > 0 ? Math.max(w - r, 0) : 0,
+  //   }));
+  // }, [formData.weight, formData.returnedWeight]);
 
   /* --------------------------------------------
       SUBMIT FORM
@@ -154,6 +154,9 @@ const PrePolish = () => {
       const data = await res.json();
 
       if (data.success) {
+        if(data?.data?.returnedWeight!==undefined){
+          onProcessUpdated()
+        }
         toast.success(product ? "Product Updated!" : "Product Added!");
       } else {
         toast.error(data.message || "Failed");

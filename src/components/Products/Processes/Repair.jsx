@@ -1,5 +1,4 @@
 /** FULL UPDATED Repair COMPONENT WITH VALIDATION + AUTO EXTRA MATERIAL */
-
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { ProductionRoles } from "../../../helper/permissions";
@@ -9,21 +8,26 @@ import { toast } from "react-toastify";
 
 const sanitizeNumber = (num) => Math.max(0, Number(num) || 0);
 
-const MATERIAL_DATA = {
+let MATERIAL_DATA = {
   Gold: {
-    "Rose Gold": ["Plain", "Stone", "Kundan"],
-    "White Gold": ["Rough", "Medium", "Fine"],
-    "Yellow Gold": ["Rough", "Medium", "Fine"],
+    "Yellow Gold": ["10kt", "14kt", "18kt", "22kt"],
+    "White Gold": ["10kt", "14kt", "18kt", "22kt"],
+    "Rose Gold": ["10kt", "14kt", "18kt", "22kt"],
   },
   Silver: {
-    Casting: ["Raw", "Refined"],
-    Polishing: ["Matt", "Glossy"],
+    925: {},
+
   },
   Platinum: {},
 };
 
-const Repair = () => {
+const Repair = ({ material, onProcessUpdated }) => {
+  const filteredMaterialData =
+    material && MATERIAL_DATA[material]
+      ? { [material]: MATERIAL_DATA[material] }
+      : MATERIAL_DATA;
   const { productId } = useParams();
+
   const { user } = useAuth();
 
   const [users, setUsers] = useState([]);
@@ -37,6 +41,7 @@ const Repair = () => {
     userId: "",
     needExtraMaterial: false,
     material: "",
+    scrab: "",
     subCategory: "",
     childCategory: "",
     extraMaterialWeight: "",
@@ -58,12 +63,12 @@ const Repair = () => {
     if (formData.needExtraMaterial) {
       if (!formData.material) newErrors.material = true;
 
-      const subCategories = Object.keys(MATERIAL_DATA[formData.material] || {});
+      const subCategories = Object.keys(filteredMaterialData[formData.material] || {});
       if (subCategories.length > 0 && !formData.subCategory)
         newErrors.subCategory = true;
 
       const childCategories =
-        MATERIAL_DATA[formData.material]?.[formData.subCategory] || [];
+        filteredMaterialData[formData.material]?.[formData.subCategory] || [];
       if (childCategories.length > 0 && !formData.childCategory)
         newErrors.childCategory = true;
 
@@ -140,8 +145,9 @@ const Repair = () => {
       ...prev,
       weight: product.weightProvided || "",
       returnedWeight: product.returnedWeight || "",
-      remainingWeight: product.remainingWeight || "",
+      remainingWeight: product.weightLoss || "",
       userId: product.userId?._id || prev.userId,
+      scrab: product.scrab ||"",
 
       // AUTO EXTRA MATERIAL SELECTION
       needExtraMaterial: hasExtra,
@@ -153,15 +159,15 @@ const Repair = () => {
   }, [product]);
 
   /* ----------------------- CALCULATE REMAINING WEIGHT ----------------------- */
-  useEffect(() => {
-    const w = sanitizeNumber(formData.weight);
-    const r = sanitizeNumber(formData.returnedWeight);
+  // useEffect(() => {
+  //   const w = sanitizeNumber(formData.weight);
+  //   const r = sanitizeNumber(formData.returnedWeight);
 
-    setFormData((prev) => ({
-      ...prev,
-      remainingWeight: w > 0 ? Math.max(w - r, 0) : 0,
-    }));
-  }, [formData.weight, formData.returnedWeight]);
+  //   setFormData((prev) => ({
+  //     ...prev,
+  //     remainingWeight: w > 0 ? Math.max(w - r, 0) : 0,
+  //   }));
+  // }, [formData.weight, formData.returnedWeight]);
 
   /* ----------------------- SUBMIT ----------------------- */
   const handleSubmit = async (e) => {
@@ -176,6 +182,7 @@ const Repair = () => {
       weightProvided: Number(formData.weight),
       returnedWeight: Number(formData.returnedWeight),
       userId: formData.userId,
+      scrab: formData.scrab,
       material: formData.needExtraMaterial ? formData.material : null,
       subCategory: formData.needExtraMaterial ? formData.subCategory : null,
       childCategory: formData.needExtraMaterial
@@ -204,6 +211,9 @@ const Repair = () => {
       const data = await res.json();
 
       if (data.success) {
+        if (data?.data?.returnedWeight !== undefined) {
+          onProcessUpdated()
+        }
         toast.success(product ? "Repair Updated!" : "Repair Added!");
       } else {
         toast.error(data.message || "Failed");
@@ -216,12 +226,12 @@ const Repair = () => {
 
   /* ----------------------- DROPDOWN VALUES ----------------------- */
   const subCategories = formData.material
-    ? Object.keys(MATERIAL_DATA[formData.material] || {})
+    ? Object.keys(filteredMaterialData[formData.material] || {})
     : [];
 
   const childCategories =
     formData.material && formData.subCategory
-      ? MATERIAL_DATA[formData.material][formData.subCategory] || []
+      ? filteredMaterialData[formData.material][formData.subCategory] || []
       : [];
 
   /* ----------------------- UI ----------------------- */
@@ -231,7 +241,7 @@ const Repair = () => {
         {productId ? "Edit Repair" : "Repair Form"}
       </h2>
       <form className="space-y-5" onSubmit={handleSubmit}>
-        
+
         {/* -------------------- MAIN INPUTS -------------------- */}
         <div className="grid md:grid-cols-3 gap-5">
 
@@ -246,7 +256,6 @@ const Repair = () => {
               />
             </div>
           )}
-
           <div>
             <label className="block text-sm text-gray-600 mb-1">
               Weight Provided (grams)
@@ -261,7 +270,6 @@ const Repair = () => {
               }
             />
           </div>
-
           <div>
             <label className="block text-sm text-gray-600 mb-1">
               Returned Weight (grams)
@@ -278,7 +286,19 @@ const Repair = () => {
               }
             />
           </div>
-
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">
+              Scrab (grams)
+            </label>
+            <input
+              type="number"
+              className="w-full border rounded-lg px-3 py-2"
+              value={formData.scrab}
+              onChange={(e) =>
+                setFormData({ ...formData, scrab: sanitizeNumber(e.target.value) })
+              }
+            />
+          </div>
           <div>
             <label className="block text-sm text-gray-600 mb-1">
               Weight Loss
@@ -328,16 +348,14 @@ const Repair = () => {
             Need Extra Material?
           </label>
 
-          {formData.needExtraMaterial && (
+          {formData.needExtraMaterial ? (
             <div className="grid md:grid-cols-3 gap-4 mt-4">
-              
               {/* MATERIAL */}
               <div>
                 <label className="block text-sm">Material</label>
                 <select
-                  className={`w-full border px-3 py-2 rounded-lg ${
-                    errors.material ? "border-red-500" : ""
-                  }`}
+                  className={`w-full border px-3 py-2 rounded-lg ${errors.material ? "border-red-500" : ""
+                    }`}
                   value={formData.material}
                   onChange={(e) =>
                     setFormData({
@@ -349,7 +367,7 @@ const Repair = () => {
                   }
                 >
                   <option value="">Select Material</option>
-                  {Object.keys(MATERIAL_DATA).map((mat) => (
+                  {Object.keys(filteredMaterialData).map((mat) => (
                     <option key={mat} value={mat}>
                       {mat}
                     </option>
@@ -362,9 +380,8 @@ const Repair = () => {
                 <div>
                   <label className="block text-sm">Sub Category</label>
                   <select
-                    className={`w-full border px-3 py-2 rounded-lg ${
-                      errors.subCategory ? "border-red-500" : ""
-                    }`}
+                    className={`w-full border px-3 py-2 rounded-lg ${errors.subCategory ? "border-red-500" : ""
+                      }`}
                     value={formData.subCategory}
                     onChange={(e) =>
                       setFormData({
@@ -389,9 +406,8 @@ const Repair = () => {
                 <div>
                   <label className="block text-sm">Child Category</label>
                   <select
-                    className={`w-full border px-3 py-2 rounded-lg ${
-                      errors.childCategory ? "border-red-500" : ""
-                    }`}
+                    className={`w-full border px-3 py-2 rounded-lg ${errors.childCategory ? "border-red-500" : ""
+                      }`}
                     value={formData.childCategory}
                     onChange={(e) =>
                       setFormData({ ...formData, childCategory: e.target.value })
@@ -414,9 +430,8 @@ const Repair = () => {
                 </label>
                 <input
                   type="number"
-                  className={`w-full border px-3 py-2 rounded-lg ${
-                    errors.extraMaterialWeight ? "border-red-500" : ""
-                  }`}
+                  className={`w-full border px-3 py-2 rounded-lg ${errors.extraMaterialWeight ? "border-red-500" : ""
+                    }`}
                   value={formData.extraMaterialWeight}
                   onChange={(e) =>
                     setFormData({
@@ -426,13 +441,14 @@ const Repair = () => {
                   }
                 />
               </div>
+
             </div>
-          )}
+          ) : null}
         </div>
 
         <button
           type="submit"
-          className="w-36 bg-[#3c3d3d] text-white py-2 rounded-lg hover:bg-black"
+          className="w-36 bg-[#3c3d3d] cursor-pointer text-white py-2 rounded-lg hover:bg-black"
         >
           {productId ? "Update Filing" : "Submit Filing"}
         </button>

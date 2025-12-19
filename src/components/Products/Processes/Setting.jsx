@@ -1,31 +1,30 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { ProductionRoles } from "../../../helper/permissions";
 import { backendRoute, routes } from "../../../backendUrl";
 import { useAuth } from "../../../context/store";
 import { toast } from "react-toastify";
-
+import ShapeDropdownPortal from "../../Popups/DropDown";
 const sanitizeNumber = (num) => Math.max(0, Number(num) || 0);
-
 /* -----------------------------
    Diamond → Category Structure
 ------------------------------ */
 const MATERIAL_DATA = {
   Diamond: {
-    "Natural Diamond": ["Plain", "Stone", "Kundan"],
-    "Lab Stone": ["Plain", "Stone", "Kundan"],
-    Mozonight: ["Plain", "Stone", "Kundan"],
-    "Color Stone": ["Plain", "Stone", "Kundan"],
+    "Natural Diamond": ["Round", "Oval", "Cushion", "Cushion Square", "Princess", "Pear", "Marquise", "Emerald", "Octagon", "Emerald Square", "Radiant", "Radiant Square", "Heart", "Trillian Curved", "Triangle", "trillian Straight", "Calf", "Half Moon", "Baguette Straight"],
+    "Lab Stone": ["Round", "Oval", "Cushion", "Cushion Square", "Princess", "Pear", "Marquise", "Emerald", "Octagon", "Emerald Square", "Radiant", "Radiant Square", "Heart", "Trillian Curved", "Triangle", "trillian Straight", "Calf", "Half Moon", "Baguette Straight"],
+    Mozonight: ["Round", "Oval", "Cushion", "Cushion Square", "Princess", "Pear", "Marquise", "Emerald", "Octagon", "Emerald Square", "Radiant", "Radiant Square", "Heart", "Trillian Curved", "Triangle", "trillian Straight", "Calf", "Half Moon", "Baguette Straight"],
+    "Color Stone": ["Round", "Oval", "Cushion", "Cushion Square", "Princess", "Pear", "Marquise", "Emerald", "Octagon", "Emerald Square", "Radiant", "Radiant Square", "Heart", "Trillian Curved", "Triangle", "trillian Straight", "Calf", "Half Moon", "Baguette Straight"],
   },
 };
-
-const Setting = () => {
+const Setting = ({ processId, onProcessUpdated }) => {
   const { productId } = useParams();
   const { user } = useAuth();
-
   const [users, setUsers] = useState([]);
   const [product, setProduct] = useState(null);
-
+  const wrapperRef = useRef(null);
+  const portalRef = useRef(null);
+  const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     weight: "",
     returnedWeight: "",
@@ -33,10 +32,11 @@ const Setting = () => {
     userId: "",
     diamondCategory: "",
     diamondSubCategory: "",
-    diamondChildCategory: "",
     diamondWeight: "",
+    diamondPices: "",
+    diamondDimenssion: "",
+    diamondChildCategory: [],
   });
-
   /* WHO CAN EDIT */
   const isEditable =
     user.role === "admin" ||
@@ -111,28 +111,18 @@ const Setting = () => {
     setFormData({
       weight: product.weightProvided || "",
       returnedWeight: product.returnedWeight || "",
-      remainingWeight: product.remainingWeight || "",
+      remainingWeight: product.weightLoss || "",
       userId: product.userId?._id || "",
 
       diamondCategory: product.diamondCategory || "",
       diamondSubCategory: product.diamondSubCategory || "",
-      diamondChildCategory: product.diamondChildCategory || "",
+      diamondChildCategory: product.diamondChildCategory || [],
       diamondWeight: product.diamondWeight || "",
+      diamondDimenssion: product.diamondDimenssion || "",
+      diamondPices: product.diamondPices || "",
     });
   }, [product]);
 
-  /* ----------------------------- 
-     5️⃣ AUTO CALCULATE LOSS 
-  ------------------------------ */
-  useEffect(() => {
-    const w = sanitizeNumber(formData.weight);
-    const r = sanitizeNumber(formData.returnedWeight);
-
-    setFormData((prev) => ({
-      ...prev,
-      remainingWeight: r > 0 ? Math.max(w - r, 0) : 0,
-    }));
-  }, [formData.weight, formData.returnedWeight]);
 
   /* ----------------------------- 
      6️⃣ SUBMIT FORM 
@@ -150,9 +140,11 @@ const Setting = () => {
       remainingWeight: Number(formData.remainingWeight),
 
       diamondCategory: formData.diamondCategory,
+      diamondDimenssion: formData.diamondDimenssion,
       diamondSubCategory: formData.diamondSubCategory,
       diamondChildCategory: formData.diamondChildCategory,
       diamondWeight: Number(formData.diamondWeight),
+      diamondPices: Number(formData.diamondPices),
     };
 
     try {
@@ -174,7 +166,15 @@ const Setting = () => {
       const data = await res.json();
 
       if (data.success) {
+
+
+
+        if (data?.data?.returnedWeight !== undefined) {
+
+          onProcessUpdated()
+        }
         toast.success(isEdit ? "Setting Updated!" : "Setting Added!");
+
       } else {
         toast.error(data.message || "Failed to save");
       }
@@ -189,14 +189,14 @@ const Setting = () => {
   ------------------------------ */
   const subCats =
     formData.diamondCategory &&
-    MATERIAL_DATA[formData.diamondCategory]
+      MATERIAL_DATA[formData.diamondCategory]
       ? Object.keys(MATERIAL_DATA[formData.diamondCategory])
       : [];
 
   const childCats =
     formData.diamondCategory &&
-    formData.diamondSubCategory &&
-    MATERIAL_DATA[formData.diamondCategory]?.[formData.diamondSubCategory]
+      formData.diamondSubCategory &&
+      MATERIAL_DATA[formData.diamondCategory]?.[formData.diamondSubCategory]
       ? MATERIAL_DATA[formData.diamondCategory][formData.diamondSubCategory]
       : [];
 
@@ -228,10 +228,11 @@ const Setting = () => {
           {/* Diamond Category */}
           <div>
             <label className="block text-sm text-gray-600 mb-1">
-              Diamond Category
+              Diamond
             </label>
             <select
               value={formData.diamondCategory}
+              disabled={!isEditable}
               onChange={(e) =>
                 setFormData({
                   ...formData,
@@ -253,7 +254,7 @@ const Setting = () => {
           {subCats.length > 0 && (
             <div>
               <label className="block text-sm text-gray-600 mb-1">
-                Sub Category
+                Diamond Types
               </label>
               <select
                 value={formData.diamondSubCategory}
@@ -264,6 +265,7 @@ const Setting = () => {
                     diamondChildCategory: "",
                   })
                 }
+                disabled={!isEditable}
                 className="w-full border rounded-lg px-3 py-2 border-gray-300 focus:outline-none"
               >
                 <option value="">-- Select Sub Category --</option>
@@ -274,31 +276,41 @@ const Setting = () => {
             </div>
           )}
 
-          {/* Child Category */}
           {childCats.length > 0 && (
-            <div>
+            <div ref={wrapperRef} className="relative w-full">
               <label className="block text-sm text-gray-600 mb-1">
-                Child Category
+                Diamond Shapes
               </label>
-              <select
-                value={formData.diamondChildCategory}
-                onChange={(e) =>
-                  setFormData({ ...formData, diamondChildCategory: e.target.value })
-                }
-                className="w-full border rounded-lg px-3 py-2 border-gray-300 focus:outline-none"
+              <button
+                type="button"
+                onClick={() => setOpen((p) => !p)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-left"
               >
-                <option value="">-- Select Child Category --</option>
-                {childCats.map((child) => (
-                  <option key={child}>{child}</option>
-                ))}
-              </select>
+                {formData.diamondChildCategory.length
+                  ? formData.diamondChildCategory.join(", ")
+                  : "Select Shapes"}
+              </button>
+
+              {/* 🧱 Leaf node for portal */}
+              <div ref={portalRef} className="relative" />
+
+              {open && (
+                <ShapeDropdownPortal
+                  portalRef={portalRef}
+                  childCats={childCats}
+                  selected={formData.diamondChildCategory}
+                  setFormData={setFormData}
+                />
+              )}
             </div>
+
           )}
+
 
           {/* Diamond Weight */}
           <div>
             <label className="block text-sm text-gray-600 mb-1">
-              Diamond Weight
+              Diamond Weight(grams)
             </label>
             <input
               type="number"
@@ -307,8 +319,38 @@ const Setting = () => {
                 setFormData({ ...formData, diamondWeight: sanitizeNumber(e.target.value) })
               }
               className="w-full border rounded-lg px-3 py-2 border-gray-300 focus:outline-none"
+              disabled={!isEditable}
             />
           </div>
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">
+              Diamond Pices
+            </label>
+            <input
+              type="number"
+              value={formData.diamondPices}
+              onChange={(e) =>
+                setFormData({ ...formData, diamondPices: sanitizeNumber(e.target.value) })
+              }
+              className="w-full border rounded-lg px-3 py-2 border-gray-300 focus:outline-none"
+              disabled={!isEditable}
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">
+              Diamond  Dimenssions
+            </label>
+            <input
+              type="text"
+              value={formData.diamondDimenssion}
+              onChange={(e) =>
+                setFormData({ ...formData, diamondDimenssion: e.target.value })
+              }
+              className="w-full border rounded-lg px-3 py-2 border-gray-300 focus:outline-none"
+              disabled={!isEditable}
+            />
+          </div>
+
 
           {/* Weight Provided */}
           <div>
@@ -322,6 +364,7 @@ const Setting = () => {
                 setFormData({ ...formData, weight: sanitizeNumber(e.target.value) })
               }
               className="w-full border rounded-lg px-3 py-2 border-gray-300 focus:outline-none"
+              disabled={!isEditable}
             />
           </div>
 
@@ -351,6 +394,7 @@ const Setting = () => {
               value={formData.remainingWeight}
               disabled
               className="w-full border bg-gray-100 rounded-lg px-3 py-2 border-gray-300 focus:outline-none"
+
             />
           </div>
 
@@ -378,7 +422,7 @@ const Setting = () => {
 
         <button
           type="submit"
-          className="w-36 bg-[#3c3d3d] text-white py-2 rounded-lg hover:bg-black"
+          className="w-36 bg-[#3c3d3d] cursor-pointer text-white py-2 rounded-lg hover:bg-black"
         >
           {productId ? "Update Setting" : "Submit Setting"}
         </button>

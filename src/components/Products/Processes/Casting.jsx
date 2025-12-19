@@ -4,30 +4,30 @@ import { ProductionRoles } from "../../../helper/permissions";
 import { backendRoute, routes } from "../../../backendUrl";
 import { useAuth } from "../../../context/store";
 import { toast } from "react-toastify";
-
-const MATERIAL_DATA = {
+import { useNavigate } from "react-router-dom";
+let MATERIAL_DATA = {
   Gold: {
-    "Rose Gold": ["Plain", "Stone", "Kundan"],
-    "White Gold": ["Rough", "Medium", "Fine"],
-    "Yellow Gold": ["Rough", "Medium", "Fine"],
+    "Yellow Gold": ["10kt", "14kt", "18kt", "22kt"],
+    "White Gold": ["10kt", "14kt", "18kt", "22kt"],
+    "Rose Gold": ["10kt", "14kt", "18kt", "22kt"],
   },
   Silver: {
-    Casting: ["Raw", "Refined"],
-    Polishing: ["Matt", "Glossy"],
+    925: {},
+
   },
   Platinum: {},
-  // Diamond: {
-  //   "Natural Diamond": ["Plain", "Stone", "Kundan"],
-  //   "Lab Stone": ["Plain", "Stone", "Kundan"],
-  //   Mozonight: ["Plain", "Stone", "Kundan"],
-  //   "Color Stone": ["Plain", "Stone", "Kundan"],
-  // },
 };
 const sanitizeNumber = (num) => Math.max(0, Number(num) || 0);
 
-const Casting = ({processId}) => {
+const Casting = ({ processId,material, onProcessUpdated }) => {
+ const filteredMaterialData =
+  material && MATERIAL_DATA[material]
+    ? { [material]: MATERIAL_DATA[material] }
+    : MATERIAL_DATA;
+
   const { productId } = useParams(); // 👈 get id from URL
   const { user } = useAuth();
+  const navigate = useNavigate()
   const [users, setUsers] = useState([]);
   const [formData, setFormData] = useState({
     materialName: "",
@@ -106,7 +106,7 @@ const Casting = ({processId}) => {
           childCategory: p.childCategory || "",
           weight: p.weightProvided || "",
           returnedWeight: p.returnedWeight || "",
-          remainingWeight: p.remainingWeight || "",
+          remainingWeight: p.weightLoss || "",
           userId: p.userId?._id || "",
         });
 
@@ -121,31 +121,31 @@ const Casting = ({processId}) => {
   /* ---------------------------------------
      4️⃣ CALCULATE REMAINING WEIGHT
   ---------------------------------------- */
-  useEffect(() => {
-    const w = sanitizeNumber(formData.weight);
-    const r = sanitizeNumber(formData.returnedWeight);
-    if (r > 0) {
-      setFormData((prev) => ({
-        ...prev,
-        remainingWeight: Math.max(w - r, 0),
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        remainingWeight: 0,
-      }));
-    }
+  // useEffect(() => {
+  //   const w = sanitizeNumber(formData.weight);
+  //   const r = sanitizeNumber(formData.returnedWeight);
+  //   if (r > 0) {
+  //     setFormData((prev) => ({
+  //       ...prev,
+  //       remainingWeight: Math.max(w - r, 0),
+  //     }));
+  //   } else {
+  //     setFormData((prev) => ({
+  //       ...prev,
+  //       remainingWeight: 0,
+  //     }));
+  //   }
 
-  }, [formData.weight, formData.returnedWeight]);
+  // }, [formData.weight, formData.returnedWeight]);
 
   const hasSubCategories =
     formData.materialName &&
-    Object.keys(MATERIAL_DATA[formData.materialName]).length > 0;
+    Object.keys(filteredMaterialData[formData.materialName]).length > 0;
 
   const hasChildCategories =
     hasSubCategories &&
     formData.subCategory &&
-    MATERIAL_DATA[formData.materialName][formData.subCategory]?.length > 0;
+    filteredMaterialData[formData.materialName][formData.subCategory]?.length > 0;
 
   /* ---------------------------------------
      5️⃣ SUBMIT FORM
@@ -179,8 +179,16 @@ const Casting = ({processId}) => {
 
       const data = await res.json();
 
+
       if (data.success) {
+        if (data?.casting?.completedProcesses?.includes(processId)) {
+          onProcessUpdated()
+        }
         toast.success(productId ? "Product Updated!" : "Product Created!");
+        const redirectProductId = productId || data?.data?._id;
+        if (redirectProductId) {
+          navigate(`/dashboard/products/edit-product/${redirectProductId}`);
+        }
       } else {
         toast.error(data.message || "Failed");
       }
@@ -233,7 +241,7 @@ const Casting = ({processId}) => {
               }
             >
               <option value="">-- Select Material --</option>
-              {Object.keys(MATERIAL_DATA).map((mat) => (
+              {Object.keys(filteredMaterialData).map((mat) => (
                 <option key={mat} value={mat}>
                   {mat}
                 </option>
@@ -260,7 +268,7 @@ const Casting = ({processId}) => {
                 }
               >
                 <option value="">-- Select Sub Category --</option>
-                {Object.keys(MATERIAL_DATA[formData.materialName]).map((sub) => (
+                {Object.keys(filteredMaterialData[formData.materialName]).map((sub) => (
                   <option key={sub} value={sub}>
                     {sub}
                   </option>
@@ -284,7 +292,7 @@ const Casting = ({processId}) => {
                 }
               >
                 <option value="">-- Select Child Category --</option>
-                {MATERIAL_DATA[formData.materialName][
+                {filteredMaterialData[formData.materialName][
                   formData.subCategory
                 ].map((child) => (
                   <option key={child} value={child}>

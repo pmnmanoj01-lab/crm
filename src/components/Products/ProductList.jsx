@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Edit, Trash2, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Edit, Trash2, Plus, ChevronLeft, ChevronRight, Eye, Download } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { backendRoute, routes } from "../../backendUrl";
@@ -7,6 +7,7 @@ import { useAccess } from "../hooks/canAccess";
 import { useAuth } from "../../context/store";
 import DeleteConfirmBox from "../Popups/DeleteConfirmBox";
 import { FEATURE_LIST, PERMISSION_TYPES } from "../../helper/permissions";
+import ViewProductModal from "../Popups/ViewProductModal";
 
 const MATERIAL_DATA = ["Gold", "Silver", "Platinum", "Diamond"];
 
@@ -17,6 +18,9 @@ const ProductList = () => {
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewProduct, setPreviewProduct] = useState(null);
+
 
   // Filters
   const [search, setSearch] = useState("");
@@ -78,7 +82,7 @@ const ProductList = () => {
   const handleConfirmDelete = async () => {
     try {
       const res = await fetch(
-        `${backendRoute}${routes.deleteProduct}/${deleteId}`,
+        `${backendRoute}${routes.deleteProduct}${deleteId}`,
         {
           method: "DELETE",
           credentials: "include",
@@ -166,6 +170,8 @@ const ProductList = () => {
               <th className="p-4 text-left font-semibold">Sub Category</th>
               <th className="p-4 text-left font-semibold">Child Category</th>
               <th className="p-4 text-left font-semibold">Weight Provided</th>
+              <th className="p-4 text-left font-semibold">Status</th>
+
               <th className="p-4 text-center font-semibold">Actions</th>
             </tr>
           </thead>
@@ -194,18 +200,47 @@ const ProductList = () => {
                   <td className="p-4">{p.subCategory || "—"}</td>
                   <td className="p-4">{p.childCategory || "—"}</td>
                   <td className="p-4">{p.weightProvided || "—"}</td>
+                  <td className="p-4">
+                    <span
+                      className={`px-3 py-1 rounded-full text-nowrap text-sm font-medium ${p.completedProcesses.length === 6
+                        ? "bg-green-100 text-green-700"
+                        : "bg-yellow-100 text-yellow-700"
+                        }`}
+                    >
+                      {p.completedProcesses.length === 6 ? "Completed" : "In Progress"}
+                    </span>
+                  </td>
+
 
                   <td className="p-4 flex gap-4 justify-center">
-                    {can(FEATURE_LIST.product, PERMISSION_TYPES.edit) &&<button
-                    className="cursor-pointer"
+                    {(can(FEATURE_LIST.product, PERMISSION_TYPES.view) && (user.role === "admin" || user.role === "Manager")) && <button
+                      className="text-blue-600 cursor-pointer"
+                      onClick={() => {
+                        setPreviewProduct(p);
+                        setPreviewOpen(true);
+                      }}
+                    >
+                      <Eye size={18} />
+                    </button>}
+
+                    {/* DOWNLOAD */}
+                    {(user.role === "admin" || user.role === "Manager") && <button
+                      className="text-green-600 cursor-pointer"
+                      onClick={() => handleDownload(p)}
+                    >
+                      <Download size={18} />
+                    </button>}
+
+                    {can(FEATURE_LIST.product, PERMISSION_TYPES.edit) && <button
+                      className="cursor-pointer"
                       onClick={() =>
                         navigate(`/dashboard/products/edit-product/${p._id}`)
                       }
                     >
-                      <Edit size={18}  />
+                      <Edit size={18} />
                     </button>}
 
-                    {can(FEATURE_LIST.product, PERMISSION_TYPES.delete) &&<button
+                    {can(FEATURE_LIST.product, PERMISSION_TYPES.delete) && <button
                       className="text-red-600 cursor-pointer"
                       onClick={() => {
                         setDeleteId(p._id);
@@ -235,6 +270,20 @@ const ProductList = () => {
           >
             <ChevronLeft size={16} />
           </button>
+          {Array.from({ length: totalPages }).map((_, idx) => {
+            const p = idx + 1;
+            return (
+              <button
+                key={p}
+                onClick={() => setPage(p)}
+                className={`px-2 py-1 border border-gray-300 rounded 
+                                    ${p === page ? "bg-gray-800 text-white" : ""}`}
+              >
+                {p}
+              </button>
+            );
+          })}
+
 
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
@@ -253,6 +302,15 @@ const ProductList = () => {
         onCancel={() => setConfirmOpen(false)}
         onConfirm={handleConfirmDelete}
       />
+      <ViewProductModal
+        open={previewOpen}
+        product={previewProduct}
+        onClose={() => {
+          setPreviewOpen(false);
+          setPreviewProduct(null);
+        }}
+      />
+
     </div>
   );
 };

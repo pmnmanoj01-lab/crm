@@ -10,7 +10,7 @@ export default function DashboardLayout({ children }) {
             <Sidebar />
             <div className="flex-1 flex flex-col">
                 <Header />
-                <main className="p-4 bg-gray-50 h-full overflow-auto">{children}</main>
+                <main className="p-4 bg-gray-50 h-full overflow-auto custom-scroll">{children}</main>
             </div>
         </div>
     );
