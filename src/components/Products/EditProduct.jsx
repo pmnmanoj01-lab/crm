@@ -108,7 +108,7 @@ const [material,setMaterial]=useState("")
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 rounded-t-lg font-medium cursor-pointer ${
+            className={`px-4 py-2  font-medium cursor-pointer ${
               activeTab === tab.id
                 ? "bg-[#3c3d3d] text-white"
                 : "bg-gray-200 text-gray-700 hover:bg-gray-300"

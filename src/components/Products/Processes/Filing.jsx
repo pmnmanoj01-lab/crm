@@ -168,17 +168,6 @@ const Filing = ({ material, onProcessUpdated }) => {
     }));
   }, [product]);
 
-  // /* ----------------------- CALCULATE REMAINING WEIGHT ----------------------- */
-  // useEffect(() => {
-  //   const w = sanitizeNumber(formData.weight);
-  //   const r = sanitizeNumber(formData.returnedWeight);
-
-  //   setFormData((prev) => ({
-  //     ...prev,
-  //     remainingWeight: w > 0 ? Math.max(w - r, 0) : 0,
-  //   }));
-  // }, [formData.weight, formData.returnedWeight]);
-
   /* ----------------------- SUBMIT ----------------------- */
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -263,7 +252,7 @@ const Filing = ({ material, onProcessUpdated }) => {
               <label className="block text-sm text-gray-600 mb-1">Product ID</label>
               <input
                 type="text"
-                className="w-full border rounded-lg px-3 py-2 bg-gray-100"
+                className="w-full border rounded-lg px-3 py-2 bg-gray-100 border-gray-300 focus:outline-none"
                 value={product?.productCode || ""}
                 disabled
               />
@@ -277,7 +266,7 @@ const Filing = ({ material, onProcessUpdated }) => {
             <input
               type="number"
               disabled={!isEditable}
-              className="w-full border rounded-lg px-3 py-2"
+              className="w-full border rounded-lg px-3 py-2 border-gray-300 focus:outline-none focus:border-gray-500"
               value={formData.weight}
               onChange={(e) =>
                 setFormData({ ...formData, weight: sanitizeNumber(e.target.value) })
@@ -291,7 +280,7 @@ const Filing = ({ material, onProcessUpdated }) => {
             </label>
             <input
               type="number"
-              className="w-full border rounded-lg px-3 py-2"
+              className="w-full border rounded-lg px-3 py-2 border-gray-300 focus:outline-none focus:border-gray-500"
               value={formData.returnedWeight}
               onChange={(e) =>
                 setFormData({
@@ -307,7 +296,7 @@ const Filing = ({ material, onProcessUpdated }) => {
             </label>
             <input
               type="number"
-              className="w-full border rounded-lg px-3 py-2"
+              className="w-full border rounded-lg px-3 py-2 border-gray-300 focus:outline-none focus:border-gray-500"
               value={formData.scrab}
               onChange={(e) =>
                 setFormData({ ...formData, scrab: sanitizeNumber(e.target.value) })
@@ -320,7 +309,7 @@ const Filing = ({ material, onProcessUpdated }) => {
             </label>
             <input
               type="number"
-              className="w-full border rounded-lg px-3 py-2"
+              className="w-full border rounded-lg px-3 py-2 border-gray-300 focus:outline-none focus:border-gray-500"
               value={formData.wireWeight}
               onChange={(e) =>
                 setFormData({ ...formData, wireWeight: sanitizeNumber(e.target.value) })
@@ -334,7 +323,7 @@ const Filing = ({ material, onProcessUpdated }) => {
             <input
               type="number"
               disabled
-              className="w-full border rounded-lg px-3 py-2 bg-gray-100"
+              className="w-full border rounded-lg px-3 py-2 bg-gray-100 border-gray-300 focus:outline-none focus:border-gray-500"
               value={formData.remainingWeight}
             />
           </div>
@@ -344,7 +333,7 @@ const Filing = ({ material, onProcessUpdated }) => {
             <div>
               <label className="block text-sm text-gray-600 mb-1">Select User</label>
               <select
-                className="w-full border rounded-lg px-3 py-2"
+                className="w-full border rounded-lg px-3 py-2 border-gray-300 focus:outline-none focus:border-gray-500"
                 value={formData.userId}
                 onChange={(e) =>
                   setFormData({ ...formData, userId: e.target.value })
@@ -362,11 +351,12 @@ const Filing = ({ material, onProcessUpdated }) => {
         </div>
 
         {/* -------------------- EXTRA MATERIAL -------------------- */}
-        <div className="mt-6 p-4 border rounded-lg bg-gray-50">
+        <div className="mt-6 p-4 border rounded-lg bg-gray-50 border-gray-300 ">
           <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
             <input
               type="checkbox"
               checked={formData.needExtraMaterial}
+              className="border border-gray-300 focus:outline-none focus:border-gray-500"
               onChange={() =>
                 setFormData({
                   ...formData,
@@ -383,7 +373,7 @@ const Filing = ({ material, onProcessUpdated }) => {
               <div>
                 <label className="block text-sm">Material</label>
                 <select
-                  className={`w-full border px-3 py-2 rounded-lg ${errors.material ? "border-red-500" : ""
+                  className={`w-full border px-3 py-2 rounded-lg border-gray-300 focus:outline-none focus:border-gray-500 ${errors.material ? "border-red-500" : ""
                     }`}
                   value={formData.material}
                   onChange={(e) =>
@@ -409,7 +399,7 @@ const Filing = ({ material, onProcessUpdated }) => {
                 <div>
                   <label className="block text-sm">Sub Category</label>
                   <select
-                    className={`w-full border px-3 py-2 rounded-lg ${errors.subCategory ? "border-red-500" : ""
+                    className={`w-full border px-3 py-2 rounded-lg border-gray-300 focus:outline-none focus:border-gray-500 ${errors.subCategory ? "border-red-500" : ""
                       }`}
                     value={formData.subCategory}
                     onChange={(e) =>
@@ -435,7 +425,7 @@ const Filing = ({ material, onProcessUpdated }) => {
                 <div>
                   <label className="block text-sm">Child Category</label>
                   <select
-                    className={`w-full border px-3 py-2 rounded-lg ${errors.childCategory ? "border-red-500" : ""
+                    className={`w-full border px-3 py-2 rounded-lg border-gray-300 focus:outline-none focus:border-gray-500 ${errors.childCategory ? "border-red-500" : ""
                       }`}
                     value={formData.childCategory}
                     onChange={(e) =>
@@ -459,7 +449,7 @@ const Filing = ({ material, onProcessUpdated }) => {
                 </label>
                 <input
                   type="number"
-                  className={`w-full border px-3 py-2 rounded-lg ${errors.extraMaterialWeight ? "border-red-500" : ""
+                  className={`w-full border px-3 py-2 rounded-lg border-gray-300 focus:outline-none focus:border-gray-500 ${errors.extraMaterialWeight ? "border-red-500" : ""
                     }`}
                   value={formData.extraMaterialWeight}
                   onChange={(e) =>

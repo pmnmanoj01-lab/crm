@@ -248,7 +248,7 @@ const Polish = ({ material, onProcessUpdated }) => {
               <label className="block text-sm text-gray-600 mb-1">Product ID</label>
               <input
                 type="text"
-                className="w-full border rounded-lg px-3 py-2 bg-gray-100"
+                className="w-full border rounded-lg px-3 py-2 bg-gray-100 border-gray-300 focus:outline-none focus:border-gray-500"
                 value={product?.productCode || ""}
                 disabled
               />
@@ -262,7 +262,7 @@ const Polish = ({ material, onProcessUpdated }) => {
             <input
               type="number"
               disabled={!isEditable}
-              className="w-full border rounded-lg px-3 py-2"
+              className="w-full border rounded-lg px-3 py-2 border-gray-300 focus:outline-none focus:border-gray-500"
               value={formData.weight}
               onChange={(e) =>
                 setFormData({ ...formData, weight: sanitizeNumber(e.target.value) })
@@ -276,7 +276,7 @@ const Polish = ({ material, onProcessUpdated }) => {
             </label>
             <input
               type="number"
-              className="w-full border rounded-lg px-3 py-2"
+              className="w-full border rounded-lg px-3 py-2 border-gray-300 focus:outline-none focus:border-gray-500"
               value={formData.returnedWeight}
               onChange={(e) =>
                 setFormData({
@@ -294,7 +294,7 @@ const Polish = ({ material, onProcessUpdated }) => {
             <input
               type="number"
               disabled
-              className="w-full border rounded-lg px-3 py-2 bg-gray-100"
+              className="w-full border rounded-lg px-3 py-2 bg-gray-100 border-gray-300 focus:outline-none focus:border-gray-500"
               value={formData.remainingWeight}
             />
           </div>
@@ -303,7 +303,7 @@ const Polish = ({ material, onProcessUpdated }) => {
             <div>
               <label className="block text-sm text-gray-600 mb-1">Select User</label>
               <select
-                className="w-full border rounded-lg px-3 py-2"
+                className="w-full border rounded-lg px-3 py-2 border-gray-300 focus:outline-none focus:border-gray-500"
                 value={formData.userId}
                 onChange={(e) =>
                   setFormData({ ...formData, userId: e.target.value })
@@ -321,11 +321,12 @@ const Polish = ({ material, onProcessUpdated }) => {
         </div>
 
         {/* -------------------- EXTRA MATERIAL -------------------- */}
-        <div className="mt-6 p-4 border rounded-lg bg-gray-50">
+        <div className="mt-6 p-4 border rounded-lg bg-gray-50 border-gray-300 focus:outline-none focus:border-gray-500">
           <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
             <input
               type="checkbox"
               checked={formData.needExtraMaterial}
+              className=" border border-gray-300 focus:outline-none focus:border-gray-500"
               onChange={() =>
                 setFormData({
                   ...formData,
@@ -343,7 +344,7 @@ const Polish = ({ material, onProcessUpdated }) => {
               <div>
                 <label className="block text-sm">Material</label>
                 <select
-                  className={`w-full border px-3 py-2 rounded-lg ${errors.material ? "border-red-500" : ""
+                  className={`w-full border px-3 py-2 rounded-lg border-gray-300 focus:outline-none focus:border-gray-500 ${errors.material ? "border-red-500" : ""
                     }`}
                   value={formData.material}
                   onChange={(e) =>
@@ -369,7 +370,7 @@ const Polish = ({ material, onProcessUpdated }) => {
                 <div>
                   <label className="block text-sm">Sub Category</label>
                   <select
-                    className={`w-full border px-3 py-2 rounded-lg ${errors.subCategory ? "border-red-500" : ""
+                    className={`w-full border px-3 py-2 rounded-lg border-gray-300 focus:outline-none focus:border-gray-500 ${errors.subCategory ? "border-red-500" : ""
                       }`}
                     value={formData.subCategory}
                     onChange={(e) =>
@@ -395,7 +396,7 @@ const Polish = ({ material, onProcessUpdated }) => {
                 <div>
                   <label className="block text-sm">Child Category</label>
                   <select
-                    className={`w-full border px-3 py-2 rounded-lg ${errors.childCategory ? "border-red-500" : ""
+                    className={`w-full border px-3 py-2 rounded-lg border-gray-300 focus:outline-none focus:border-gray-500 ${errors.childCategory ? "border-red-500" : ""
                       }`}
                     value={formData.childCategory}
                     onChange={(e) =>
@@ -419,7 +420,7 @@ const Polish = ({ material, onProcessUpdated }) => {
                 </label>
                 <input
                   type="number"
-                  className={`w-full border px-3 py-2 rounded-lg ${errors.extraMaterialWeight ? "border-red-500" : ""
+                  className={`w-full border px-3 py-2 rounded-lg border-gray-300 focus:outline-none focus:border-gray-500 ${errors.extraMaterialWeight ? "border-red-500" : ""
                     }`}
                   value={formData.extraMaterialWeight}
                   onChange={(e) =>

@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { ProductionRoles } from "../../../helper/permissions";
 import { backendRoute, routes } from "../../../backendUrl";
 import { useAuth } from "../../../context/store";
+import { Plus, Trash2, Save, Edit } from "lucide-react";
 import { toast } from "react-toastify";
 import ShapeDropdownPortal from "../../Popups/DropDown";
 const sanitizeNumber = (num) => Math.max(0, Number(num) || 0);
@@ -17,7 +18,7 @@ const MATERIAL_DATA = {
     "Color Stone": ["Round", "Oval", "Cushion", "Cushion Square", "Princess", "Pear", "Marquise", "Emerald", "Octagon", "Emerald Square", "Radiant", "Radiant Square", "Heart", "Trillian Curved", "Triangle", "trillian Straight", "Calf", "Half Moon", "Baguette Straight"],
   },
 };
-const Setting = ({ processId, onProcessUpdated }) => {
+const Setting = ({ onProcessUpdated }) => {
   const { productId } = useParams();
   const { user } = useAuth();
   const [users, setUsers] = useState([]);
@@ -32,10 +33,9 @@ const Setting = ({ processId, onProcessUpdated }) => {
     userId: "",
     diamondCategory: "",
     diamondSubCategory: "",
-    diamondWeight: "",
-    diamondPices: "",
-    diamondDimenssion: "",
     diamondChildCategory: [],
+    diamondDetails: {},
+    savedShapes: {},
   });
   /* WHO CAN EDIT */
   const isEditable =
@@ -117,11 +117,15 @@ const Setting = ({ processId, onProcessUpdated }) => {
       diamondCategory: product.diamondCategory || "",
       diamondSubCategory: product.diamondSubCategory || "",
       diamondChildCategory: product.diamondChildCategory || [],
-      diamondWeight: product.diamondWeight || "",
-      diamondDimenssion: product.diamondDimenssion || "",
-      diamondPices: product.diamondPices || "",
+      diamondDetails: product.diamondDetails || {},
+      savedShapes: product.savedShapes || {}
+
     });
   }, [product]);
+
+  //<--------------- fetched only saved details---------------------------->
+
+
 
 
   /* ----------------------------- 
@@ -130,6 +134,8 @@ const Setting = ({ processId, onProcessUpdated }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // console.log("form data is as----------> ", formData)
+
     const finalData = {
       product: productId,
       userId: formData.userId,
@@ -137,13 +143,11 @@ const Setting = ({ processId, onProcessUpdated }) => {
       weightProvided: Number(formData.weight),
       returnedWeight: Number(formData.returnedWeight),
       remainingWeight: formData.remainingWeight,
-
       diamondCategory: formData.diamondCategory,
-      diamondDimenssion: formData.diamondDimenssion,
       diamondSubCategory: formData.diamondSubCategory,
       diamondChildCategory: formData.diamondChildCategory,
-      diamondWeight: formData.diamondWeight,
-      diamondPices: formData.diamondPices,
+      diamondDetails: JSON.stringify(formData.diamondDetails),
+      savedShapes: JSON.stringify(formData.savedShapes)
     };
 
     try {
@@ -202,6 +206,122 @@ const Setting = ({ processId, onProcessUpdated }) => {
   /* ----------------------------- 
      UI (same styling) 
   ------------------------------ */
+
+  const handleShapeToggle = (shape) => {
+    setFormData((prev) => {
+      const exists = prev.diamondChildCategory.includes(shape);
+
+      // 🧹 REMOVE SHAPE
+      if (exists) {
+        const updatedDetails = { ...prev.diamondDetails };
+        const updatedSavedShapes = { ...prev.savedShapes };
+
+        delete updatedDetails[shape];
+        delete updatedSavedShapes[shape]; // ❌ or keep false (your choice)
+
+        return {
+          ...prev,
+          diamondChildCategory: prev.diamondChildCategory.filter(
+            (s) => s !== shape
+          ),
+          diamondDetails: updatedDetails,
+          savedShapes: {
+            ...updatedSavedShapes,
+            [shape]: false, // ✅ explicitly mark false on untoggle
+          },
+        };
+      }
+
+      // ➕ ADD SHAPE
+      return {
+        ...prev,
+        diamondChildCategory: [...prev.diamondChildCategory, shape],
+        diamondDetails: {
+          ...prev.diamondDetails,
+          [shape]: [{ dimension: "", pieces: "", weight: "" }],
+        },
+        savedShapes: {
+          ...prev.savedShapes,
+          [shape]: false, // ✅ default unsaved
+        },
+      };
+    });
+  };
+
+  const handleSaveShape = (shape) => {
+    const rows = formData.diamondDetails[shape] || [];
+
+    // Basic validation
+    const isValid = rows.every(
+      (r) => r.dimension && r.pieces && r.weight
+    );
+
+    if (!isValid) {
+      toast.error(`Please fill all fields for ${shape}`);
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      savedShapes: {
+        ...prev.savedShapes,
+        [shape]: true,
+      },
+    }));
+
+    toast.success(`${shape} saved`);
+  };
+
+
+  const updateDiamondRow = (shape, index, field, value) => {
+    setFormData((prev) => {
+      const updated = [...prev.diamondDetails[shape]];
+      updated[index][field] = value;
+
+      return {
+        ...prev,
+        diamondDetails: {
+          ...prev.diamondDetails,
+          [shape]: updated
+        }
+      };
+    });
+  };
+
+  const addDiamondRow = (shape) => {
+    setFormData((prev) => ({
+      ...prev,
+      diamondDetails: {
+        ...prev.diamondDetails,
+        [shape]: [...prev.diamondDetails[shape], { dimension: "", pieces: "", weight: "" }]
+      }
+    }));
+  };
+
+  const removeDiamondRow = (shape, index) => {
+    setFormData((prev) => {
+      const updated = prev.diamondDetails[shape].filter((_, i) => i !== index);
+
+      return {
+        ...prev,
+        diamondDetails: {
+          ...prev.diamondDetails,
+          [shape]: updated
+        }
+      };
+    });
+  };
+  const unlockShape = (shape) => {
+    setFormData((prev) => ({
+      ...prev,
+      savedShapes: {
+        ...prev.savedShapes,
+        [shape]: false,
+      },
+    }));
+  };
+
+
   return (
     <div className="max-w-full mx-auto bg-white p-6 rounded-xl mt-5">
       <h2 className="text-2xl font-bold mb-4 text-gray-700">
@@ -237,7 +357,7 @@ const Setting = ({ processId, onProcessUpdated }) => {
                   ...formData,
                   diamondCategory: e.target.value,
                   diamondSubCategory: "",
-                  diamondChildCategory: "",
+                  diamondChildCategory: [],
                 })
               }
               className="w-full border rounded-lg px-3 py-2 border-gray-300 focus:outline-none"
@@ -298,57 +418,109 @@ const Setting = ({ processId, onProcessUpdated }) => {
                   portalRef={portalRef}
                   childCats={childCats}
                   selected={formData.diamondChildCategory}
-                  setFormData={setFormData}
+                  onToggle={handleShapeToggle}
                 />
               )}
             </div>
 
           )}
+          {Array.isArray(formData.diamondChildCategory) &&
+            formData.diamondChildCategory.map((shape) => (
+              <div
+                key={shape}
+                className={`border rounded-lg p-4 mt-4 ${formData.savedShapes?.[shape]
+                  ? "bg-gray-200 border-gray-400"
+                  : "bg-gray-50"
+                  }`}
+              >
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="font-semibold">{shape} Details</h4>
+
+                  {formData.savedShapes?.[shape] ? (
+                    <button
+                      type="button"
+                      onClick={() => unlockShape(shape)}
+                      className="text-sm text-yellow px-3 py-1 rounded cursor-pointer"
+                    >
+                      <Edit size={18} />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleSaveShape(shape)}
+                      className="text-sm  text-black px-3 py-1 cursor-pointer rounded"
+                    >
+                      <Save size={18} />
+                    </button>
+                  )}
+                </div>
+
+                <div className="grid md:grid-cols-4 gap-3 mb-2">
+                  <p>Diams</p>
+                  <p>Pacs</p>
+                  <p>Wt</p>
+                </div>
+                {formData.diamondDetails[shape]?.map((row, index) => (
+                  <div key={index} className="grid md:grid-cols-4 h-auto gap-3 mb-2">
+
+                    <input
+                      placeholder="Dimension"
+                      value={row.dimension}
+                      onChange={(e) =>
+                        updateDiamondRow(shape, index, "dimension", e.target.value)
+                      }
+                      className="border rounded px-2 py-1 border-gray-300 focus:outline-none focus:border-gray-500"
+                      disabled={formData.savedShapes?.[shape]}
+                    />
+
+                    <input
+                      placeholder="Pieces"
+                      type="number"
+                      value={row.pieces}
+                      onChange={(e) =>
+                        updateDiamondRow(shape, index, "pieces", e.target.value)
+                      }
+                      className="border rounded px-2 py-1 border-gray-300 focus:outline-none focus:border-gray-500"
+                      disabled={formData.savedShapes?.[shape]}
+                    />
+
+                    <input
+                      placeholder="Weight"
+                      type="number"
+                      value={row.weight}
+                      onChange={(e) =>
+                        updateDiamondRow(shape, index, "weight", e.target.value)
+                      }
+                      className="border rounded px-2 py-1 border-gray-300 focus:outline-none focus:border-gray-500"
+                      disabled={formData.savedShapes?.[shape]}
+                    />
+
+                    {!formData.savedShapes?.[shape] && (
+                      <button
+                        type="button"
+                        onClick={() => removeDiamondRow(shape, index)}
+                        className="text-red-500 cursor-pointer"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+
+                {!formData.savedShapes?.[shape] && (
+                  <button
+                    type="button"
+                    onClick={() => addDiamondRow(shape)}
+                    className="text-sm text-black mt-2 cursor-pointer"
+                  >
+                    <Plus size={18} />
+                  </button>
+                )}
+              </div>
+            ))}
 
 
-          {/* Diamond Weight */}
-          <div>
-            <label className="block text-sm text-gray-600 mb-1">
-              Diamond Weight(grams)
-            </label>
-            <input
-              type="text"
-              value={formData.diamondWeight}
-              onChange={(e) =>
-                setFormData({ ...formData, diamondWeight: e.target.value })
-              }
-              className="w-full border rounded-lg px-3 py-2 border-gray-300 focus:outline-none"
-              disabled={!isEditable}
-            />
-          </div>
-          <div>
-            <label className="block text-sm text-gray-600 mb-1">
-              Diamond Pices
-            </label>
-            <input
-              type="text"
-              value={formData.diamondPices}
-              onChange={(e) =>
-                setFormData({ ...formData, diamondPices:e.target.value })
-              }
-              className="w-full border rounded-lg px-3 py-2 border-gray-300 focus:outline-none"
-              disabled={!isEditable}
-            />
-          </div>
-          <div>
-            <label className="block text-sm text-gray-600 mb-1">
-              Diamond  Dimenssions
-            </label>
-            <input
-              type="text"
-              value={formData.diamondDimenssion}
-              onChange={(e) =>
-                setFormData({ ...formData, diamondDimenssion: e.target.value })
-              }
-              className="w-full border rounded-lg px-3 py-2 border-gray-300 focus:outline-none"
-              disabled={!isEditable}
-            />
-          </div>
+
 
 
           {/* Weight Provided */}
