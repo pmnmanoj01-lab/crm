@@ -49,64 +49,71 @@ export default function Login() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center bg-no-repeat"
+      className="min-h-screen flex items-center justify-center p-2 bg-cover bg-no-repeat"
       style={{ backgroundImage: "url('/desktop_page.jpg')" }}
     >
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
-        <h2 className="text-2xl font-bold text-gray-800 text-center mb-6">
-          Login
-        </h2>
+      <div className="flex flex-col gap-5 w-full max-w-md ">
+        <div className="w-full flex justify-center">
+          <img loading="lazy" src="/bhunte_logo1.png" alt="company logo" className=" max-w-md h-20" />
 
-        {error && (
-          <p className="bg-red-100 text-red-600 p-2 rounded mb-4 text-center">
-            {error}
-          </p>
-        )}
+        </div>
+        <div className="w-full bg-white/20 rounded-2xl shadow-xl p-8">
+          <h2 className="text-2xl font-bold text-gray-800 text-center mb-6">
+            Login
+          </h2>
 
-        <form className="space-y-2" onSubmit={handleSubmit}>
-          <div>
-            <label className="block mb-1 text-gray-600">Email</label>
-            <input
-              type="email"
-              name="email"
-              className="w-full px-3 py-2 border rounded-md focus:outline-none border-gray-300 focus:border-gray-500"
-              placeholder="example@gmail.com"
-              onChange={handleChange}
-              required
-            />
-          </div>
+          {error && (
+            <p className="bg-red-100 text-red-600 p-2 rounded mb-4 text-center">
+              {error}
+            </p>
+          )}
 
-          <div className="relative">
-            <label className="block mb-1 text-gray-600">Password</label>
+          <form className="space-y-2" onSubmit={handleSubmit}>
+            <div>
+              <label className="block mb-1 text-gray-800">Email</label>
+              <input
+                type="email"
+                name="email"
+                className="w-full px-3 py-2 border rounded-md focus:outline-none border-gray-300 focus:border-gray-500"
+                placeholder="example@gmail.com"
+                onChange={handleChange}
+                required
+              />
+            </div>
 
-            <input
-              type={showPassword ? "text" : "password"}
-              name="password"
-              className="w-full px-3 py-2 border rounded-md pr-10 focus:outline-none border-gray-300 focus:border-gray-500"
-              placeholder="Q7@M9!rZ2#Lp"
-              onChange={handleChange}
-              required
-            />
+            <div className="relative">
+              <label className="block mb-1 text-gray-800">Password</label>
+
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                className="w-full px-3 py-2 border rounded-md pr-10 focus:outline-none border-gray-300 focus:border-gray-500"
+                placeholder="Q7@M9!rZ2#Lp"
+                onChange={handleChange}
+                required
+              />
+
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-[38px] cursor-pointer text-gray-500 hover:text-gray-800"
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
 
             <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-[38px] cursor-pointer text-gray-500 hover:text-gray-800"
-              tabIndex={-1}
+              type="submit"
+              disabled={loading}
+              className="w-full hover:bg-black/70 text-white py-3 mt-7 rounded-md bg-[#000000] transition disabled:bg-[#000000] cursor-pointer"
             >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              {loading ? "Logging in..." : "Login"}
             </button>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-[#3c3d3d] text-white py-3 mt-7 rounded-md hover:bg-[#000000] transition disabled:bg-[#000000] cursor-pointer"
-          >
-            {loading ? "Logging in..." : "Login"}
-          </button>
-        </form>
+          </form>
+        </div>
       </div>
+
     </div>
   );
 }

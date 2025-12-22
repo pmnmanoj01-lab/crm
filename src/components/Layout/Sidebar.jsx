@@ -76,13 +76,13 @@ export default function Sidebar() {
           <div>
             <button
               onClick={() => setOpenProduct(!openProduct)}
-              className="flex items-center justify-between w-full hover:bg-gray-800 p-2 rounded"
+              className="flex items-center justify-between cursor-pointer w-full hover:bg-gray-800 p-2 rounded"
             >
-              <span className="flex items-center cursor-pointer space-x-3">
+              <span className="flex items-center space-x-3">
                 <Package size={20} />
                 <span>Products</span>
               </span>
-              <span className="text-sm">{openProduct ? "▲" : "▼"}</span>
+              <span className="text-sm ">{openProduct ? "▲" : "▼"}</span>
             </button>
 
             {openProduct && (
@@ -110,13 +110,13 @@ export default function Sidebar() {
           <div>
             <button
               onClick={() => setOpenDesigner(!openDesigner)}
-              className="flex items-center justify-between w-full hover:bg-gray-800 p-2 rounded"
+              className="flex items-center justify-between cursor-pointer w-full hover:bg-gray-800 p-2 rounded"
             >
-              <span className="flex items-center cursor-pointer space-x-3">
+              <span className="flex items-center space-x-3">
                 <Palette size={20} />
                 <span>Designer</span>
               </span>
-              <span className="text-sm">{openDesigner ? "▲" : "▼"}</span>
+              <span className="text-sm ">{openDesigner ? "▲" : "▼"}</span>
             </button>
 
             {openDesigner && (

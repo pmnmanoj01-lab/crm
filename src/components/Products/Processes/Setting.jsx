@@ -134,17 +134,16 @@ const Setting = ({ processId, onProcessUpdated }) => {
       product: productId,
       userId: formData.userId,
       material: "Diamond",
-
       weightProvided: Number(formData.weight),
       returnedWeight: Number(formData.returnedWeight),
-      remainingWeight: Number(formData.remainingWeight),
+      remainingWeight: formData.remainingWeight,
 
       diamondCategory: formData.diamondCategory,
       diamondDimenssion: formData.diamondDimenssion,
       diamondSubCategory: formData.diamondSubCategory,
       diamondChildCategory: formData.diamondChildCategory,
-      diamondWeight: Number(formData.diamondWeight),
-      diamondPices: Number(formData.diamondPices),
+      diamondWeight: formData.diamondWeight,
+      diamondPices: formData.diamondPices,
     };
 
     try {
@@ -313,10 +312,10 @@ const Setting = ({ processId, onProcessUpdated }) => {
               Diamond Weight(grams)
             </label>
             <input
-              type="number"
+              type="text"
               value={formData.diamondWeight}
               onChange={(e) =>
-                setFormData({ ...formData, diamondWeight: sanitizeNumber(e.target.value) })
+                setFormData({ ...formData, diamondWeight: e.target.value })
               }
               className="w-full border rounded-lg px-3 py-2 border-gray-300 focus:outline-none"
               disabled={!isEditable}
@@ -327,10 +326,10 @@ const Setting = ({ processId, onProcessUpdated }) => {
               Diamond Pices
             </label>
             <input
-              type="number"
+              type="text"
               value={formData.diamondPices}
               onChange={(e) =>
-                setFormData({ ...formData, diamondPices: sanitizeNumber(e.target.value) })
+                setFormData({ ...formData, diamondPices:e.target.value })
               }
               className="w-full border rounded-lg px-3 py-2 border-gray-300 focus:outline-none"
               disabled={!isEditable}
