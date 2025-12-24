@@ -178,6 +178,7 @@ const Master = () => {
                                         <input
                                             type="radio"
                                             checked={selectedCategory === item?._id}
+                                            className="cursor-pointer"
                                             onChange={() => { setSelectedCategory(item?._id) }}
                                         />
                                         <span className="text-gray-800">{item?.name}</span>
