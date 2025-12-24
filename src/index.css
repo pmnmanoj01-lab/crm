@@ -1,15 +1,12 @@
 @import "tailwindcss";
-
 /* Custom thin scrollbar (3px) */
 .custom-scroll::-webkit-scrollbar {
   width: 1px;
 }
-
 .custom-scroll::-webkit-scrollbar-thumb {
   background: #9ca3af; /* gray-400 */
   border-radius: 10px;
 }
-
 .custom-scroll::-webkit-scrollbar-track {
   background: #f1f1f1;
 }
@@ -20,4 +17,3 @@
 .animate-fadeIn {
   animation: fadeIn 0.2s ease-out;
 }
-

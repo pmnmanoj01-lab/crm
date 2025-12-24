@@ -15,7 +15,6 @@ import { useAuth } from "../../context/store";
 import { useAccess } from "../hooks/canAccess";
 import { FEATURE_LIST, PERMISSION_TYPES } from "../../helper/permissions";
 import { useState } from "react";
-
 export default function Sidebar() {
   const { logout, user, exitImpersonation } = useAuth();
   const { can } = useAccess();
@@ -45,7 +44,6 @@ export default function Sidebar() {
       <div className="w-full h-px bg-white mb-4"></div>
 
       <nav className="space-y-4">
-
         {/* DASHBOARD */}
         {can(FEATURE_LIST.dashboard) && (
           <Link to="/dashboard" className="flex items-center space-x-3 hover:bg-gray-800 p-2 rounded">
@@ -53,7 +51,10 @@ export default function Sidebar() {
             <span>Dashboard</span>
           </Link>
         )}
-
+          <Link to="/dashboard/master" className="flex items-center space-x-3 hover:bg-gray-800 p-2 rounded">
+            <Home size={20} />
+            <span>Master</span>
+          </Link>
         {/* TEAM */}
         {can(FEATURE_LIST.team) && (
           <Link to="/dashboard/team" className="flex items-center space-x-3 hover:bg-gray-800 p-2 rounded">

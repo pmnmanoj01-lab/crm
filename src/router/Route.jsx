@@ -18,6 +18,7 @@ import EditProduct from "../components/Products/EditProduct";
 import DesignProductList from "../components/Desinger/ProductList";
 import CreateDesignProduct from "../components/Desinger/CreateProduct";
 import EidtDesignProduct from "../components/Desinger/EditProduct";
+import Master from "../components/Master/Master";
 
 // NEW IMPORTS
 
@@ -42,6 +43,7 @@ export default function AppRouter() {
             <DashboardLayout>
               <Routes>
                 <Route path="" element={<Dashboard />} />
+                <Route path="master" element={<Master/>} />
 
                 {/* TEAM ROUTES */}
                 <Route

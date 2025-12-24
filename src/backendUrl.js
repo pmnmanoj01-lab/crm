@@ -1,5 +1,5 @@
-export const backendRoute="http://localhost:5000"
-// export const backendRoute="https://backendcrm.bhunte.com"
+// export const backendRoute="http://localhost:5000"
+export const backendRoute="https://backendcrm.bhunte.com"
 export const routes={
     login:"/auth/login",
     logout:"/auth/logout",
@@ -55,5 +55,26 @@ export const routes={
 
     createProductRepair:"/product/repair/create",
     updateProductRepair:"/product/repair/update/",
-    getProductRepair:"/product/repair/get/"
+    getProductRepair:"/product/repair/get/",
+
+     //---------------Master Category Operations Category,Sub Category and Child Category------------------------->
+       //                        <-------category------------->
+    addMasterCategory:"/master/add-category",
+    editMasterCategory:"/master/edit-category/",
+    deleteMasterCategory:"/master/delete-category/",
+    getMasterCategories:"/master/get-categories",
+
+       //                        <-------sub category------------->
+
+    addMasterSubCategory:"/master/add-sub-category",
+    editMasterSubCategory:"/master/edit-sub-category/",
+    deleteMasterSubCategory:"/master/delete-sub-category/",
+    getMasterSubCategories:"/master/get-sub-categories",
+
+        //                        <-------sub child category------------->
+
+    addMasterSubChildCategory:"/master/add-sub-child-category",
+    editMasterSubChildCategory:"/master/edit-sub-child-category/",
+    deleteMasterSubChildCategory:"/master/delete-sub-child-category/",
+    getMasterSubChildCategories:"/master/get-sub-child-categories",
 }

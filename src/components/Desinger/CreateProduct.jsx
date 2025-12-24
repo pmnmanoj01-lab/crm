@@ -1,25 +1,35 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { X } from "lucide-react";
-
-const CATEGORIES = [
-    "Ring",
-    "Necklace",
-    "Bracelet",
-    "Earring",
-    "Pendant",
-];
-
+import { backendRoute, routes } from "../../backendUrl";
+import { useEffect } from "react";
+const getAllCategories = async () => {
+    const res = await fetch(`${backendRoute}${routes.getMasterCategories}`, { method: "GET", credentials: "include" })
+    const data = await res.json()
+    return data.data || []
+}
 const CreateDesignProduct = () => {
     const [category, setCategory] = useState("");
-
+    const [categories, setCategories] = useState([])
     const [images, setImages] = useState([]);
-
+    const [cadImage, setCadImage] = useState();
     const [formData, setFormData] = useState({
         metalWeight: "",
         diamondCt: "",
         totalDiamond: "",
     });
+    useEffect(() => {
+        fetchCategories()
+    }, [])
+    const fetchCategories = async () => {
+        try {
 
+            const res = await getAllCategories();
+            setCategories(Array.isArray(res) ? res : []);
+        } catch (error) {
+            console.error(error);
+            setCategories([]);
+        }
+    };
     /* -----------------------------
        Handle Input Change
     ------------------------------ */
@@ -34,7 +44,7 @@ const CreateDesignProduct = () => {
     const handleImageChange = (e) => {
         const files = Array.from(e.target.files);
 
-        if (images.length + files.length > 4) {
+        if (images.length + files.length > 3) {
             alert("You can upload only 3 images");
             return;
         }
@@ -51,6 +61,33 @@ const CreateDesignProduct = () => {
         setImages((prev) => [...prev, ...mapped]);
         e.target.value = "";
     };
+    const handleCadImageChange = (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // validate image
+        if (!file.type.startsWith("image/")) {
+            toast.error("Only image files are allowed");
+            e.target.value = "";
+            return;
+        }
+
+        // cleanup old preview (important)
+        setCadImage((prev) => {
+            prev?.[0]?.preview && URL.revokeObjectURL(prev[0].preview);
+
+            return [
+                {
+                    file,
+                    preview: URL.createObjectURL(file),
+                },
+            ];
+        });
+
+        // reset input so same file can be selected again
+        e.target.value = "";
+    };
+
 
     /* -----------------------------
        Remove Image
@@ -59,17 +96,47 @@ const CreateDesignProduct = () => {
         URL.revokeObjectURL(images[index].preview);
         setImages(images.filter((_, i) => i !== index));
     };
+    const removeCadImage = (index) => {
+        URL.revokeObjectURL(cadImage[index].preview);
+        setCadImage(cadImage.filter((_, i) => i !== index));
+    };
 
     /* -----------------------------
        Submit (placeholder)
     ------------------------------ */
-    const handleSubmit = () => {
-        const payload = {
+    const handleSubmit = async () => {
+          const payload = {
             category,
             ...formData,
             images,
+            cadImage
         };
 
+        // const formData1 = new FormData();
+
+        // text fields
+        // formData1.append("category", category);
+        // formData1.append("metalWeight",formData.metalWeight);
+        // formData1.append("diamondCt", formData.diamondCt);
+        // formData1.append("totalDiamond",formData.totalDiamond);
+
+        // multiple product images
+        // images.forEach((img) => {
+        //     formData1.append("images", img.file); // same key = array
+        // });
+
+        // // single CAD image
+        // if (cadImage?.[0]?.file) {
+        //     formData1.append("cadImage", cadImage[0].file);
+        // }
+
+        // const res = await fetch(`${backendRoute}${routes.addProduct}`, {
+        //     method: "POST",
+        //     body: formData1, // ❌ no headers
+        //     credentials: "include",
+        // });
+
+        // const data = await res.json();
         console.log(payload);
     };
 
@@ -89,9 +156,9 @@ const CreateDesignProduct = () => {
                         className="w-full border rounded focus:outline-none border-gray-300 focus:border-gray-500 px-3 py-2"
                     >
                         <option value="">Select category</option>
-                        {CATEGORIES.map((cat) => (
-                            <option key={cat} value={cat}>
-                                {cat}
+                        {categories.map((cat, i) => (
+                            <option key={i} value={cat?._id}>
+                                {cat?.name}
                             </option>
                         ))}
                     </select>
@@ -150,6 +217,45 @@ const CreateDesignProduct = () => {
             {/* IMAGE UPLOAD */}
             <div>
                 <label className="block text-sm font-medium mb-1">
+                    Upload Cad Image
+                </label>
+
+                <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleCadImageChange}
+                    className="w-full text-sm cursor-pointer "
+                />
+
+                {/* PREVIEW */}
+                {cadImage?.length > 0 && (
+                    <div className="grid grid-cols-4 gap-3 mt-3">
+                        {cadImage?.map((img, index) => (
+                            <div
+                                key={index}
+                                className="relative border border-gray-300 rounded overflow-hidden"
+                            >
+                                <img
+                                    src={img.preview}
+                                    alt="preview"
+                                    className="h-36 w-full object-cover"
+                                />
+
+                                <button
+                                    type="button"
+                                    onClick={() => removeCadImage(index)}
+                                    className="absolute top-1 right-1 bg-black/60 text-white cursor-pointer rounded-full p-1"
+                                >
+                                    <X size={14} />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+            <div>
+                <label className="block text-sm font-medium mb-1">
                     Design Images (Max 3)
                 </label>
 
@@ -193,7 +299,7 @@ const CreateDesignProduct = () => {
             <button
                 onClick={handleSubmit}
                 disabled={!category || images.length === 0}
-                className="w-full bg-[#3c3d3d] cursor-pointer text-white py-2 rounded hover:bg-gray-900 disabled:opacity-50"
+                className="w-full bg-gray-600 cursor-pointer text-white py-2 rounded hover:bg-gray-900 "
             >
                 Save Design Product
             </button>

@@ -4,7 +4,8 @@ export const FEATURE_LIST = {
   profile: "profile",
   permissions:"permissions",
   product:"product",
-  designer:"designer"
+  designer:"designer",
+  master:"master"
 };
 
 export const PERMISSION_TYPES = {
@@ -21,6 +22,13 @@ export const FEATURE_PERMISSIONS = {
   ],
 
   designer: [
+    { name: "create", code: 1 },
+    { name: "edit", code: 0 },
+    { name: "delete", code: 2 },
+    { name: "view", code: 3 },
+    { name: "patch", code: 4 },
+  ],
+  master: [
     { name: "create", code: 1 },
     { name: "edit", code: 0 },
     { name: "delete", code: 2 },
